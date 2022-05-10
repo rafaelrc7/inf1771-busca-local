@@ -22,6 +22,7 @@
 
       devShell = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [
+          bash
           gcc
           gnumake
           autoconf
