@@ -34,7 +34,7 @@ fail0:
 struct array *array_copy(struct array *arr) {
 	struct array *arr_copy;
 
-	if (arr != NULL)
+	if (arr == NULL)
 		return NULL;
 
 	arr_copy = (struct array *)malloc(sizeof(struct array));
