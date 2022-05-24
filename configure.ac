@@ -24,7 +24,7 @@ AC_TYPE_UINT8_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([memset srandom random])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
