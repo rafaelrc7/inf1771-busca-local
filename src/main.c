@@ -19,6 +19,7 @@
 struct solution {
 	uint8_t genes[STAGES];
 	double time;
+	double fitness;
 };
 typedef struct solution Solution;
 
@@ -28,7 +29,9 @@ static void print_solutions(const Solution *const solutions, const size_t size, 
 static double time_stage(const uint8_t gene, const double agilities[CHARS], const uint8_t stage);
 static double time_stages(const uint8_t genes[STAGES], const double agilities[CHARS]);
 static int solution_sort(const void *ptr1, const void *ptr2);
-static size_t roulette(const size_t size);
+static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double agilities[CHARS], const double total_fitness);
+static double total_fitness(const Solution *const solutions, size_t solutions_num);
+static double fitness(const Solution solution);
 
 int main(void) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
@@ -43,6 +46,8 @@ int main(void) {
 	for (g = 0; g < GENERATIONS; ++g) {
 		Solution *new_solutions;
 		size_t i;
+		double total_fitness_val = total_fitness(solutions, individual_count);
+
 		qsort(solutions, individual_count, sizeof(Solution), &solution_sort);
 
 		printf("\n----- GENERATION %lu -----\n", g);
@@ -55,8 +60,8 @@ int main(void) {
 
 		for (; i < SONS + KEEP;) {
 			size_t j, mut;
-			size_t parent1 = random() % (size_t)(0.7 * individual_count);
-			size_t parent2 = random() % (size_t)(0.7 * individual_count);
+			size_t parent1 = roulette(solutions, individual_count, agilities, total_fitness_val);
+			size_t parent2 = roulette(solutions, individual_count, agilities, total_fitness_val);
 
 			for (j = 0; j < STAGES; ++j) {
 				uint8_t select = random() % 2;
@@ -84,6 +89,7 @@ int main(void) {
 
 			if (validate_genes(new_solutions[i].genes)) {
 				new_solutions[i].time = time_stages(new_solutions[i].genes, agilities);
+				new_solutions[i].fitness = fitness(new_solutions[i]);
 				++i;
 			}
 		}
@@ -162,6 +168,7 @@ static int generate_genes(Solution *solutions, const size_t size, const double a
 
 		if (validate_genes(solutions[i].genes)) {
 			solutions[i].time = time_stages(solutions[i].genes, agilities);
+			solutions[i].fitness = fitness(solutions[i]);
 			++i;
 		}
 	}
@@ -224,19 +231,32 @@ static int solution_sort(const void *ptr1, const void *ptr2) {
 		return 1;
 }
 
-static size_t roulette(const size_t size) {
+static double total_fitness(const Solution *const solutions, size_t solutions_num) {
+	size_t i;
+	double sum = 0;
+
+	for (i = 0; i < solutions_num; ++i)
+		sum += solutions[i].fitness;
+
+	return sum;
+}
+
+static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double agilities[CHARS], const double total_fitness) {
 	size_t i;
 	double r = random() / (double)RAND_MAX;
 
-	for (i = 0; i < size; ++i) {
-		double pi = (size - i) / (double)size;
+	for (i = 0; i < solutions_num; ++i) {
+		double pi = solutions[i].fitness / total_fitness;
 		if (r < pi) {
 			return i;
-		} else {
-			r -= pi;
 		}
+		r -= pi;
 	}
 
 	return -1;
+}
+
+static double fitness(const Solution solution) {
+	return 1.0 / solution.time;
 }
 
