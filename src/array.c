@@ -31,7 +31,7 @@ fail0:
 	return NULL;
 }
 
-struct array *array_copy(struct array *arr) {
+struct array *array_copy(const struct array *const arr) {
 	struct array *arr_copy;
 
 	if (arr == NULL)
@@ -66,14 +66,14 @@ void array_free(struct array *arr) {
 	free(arr);
 }
 
-void *array_get(struct array *arr, size_t i) {
+void *array_get(const struct array *const arr, const size_t i) {
 	if (arr == NULL) return NULL;
 	if (i >= arr->size) return NULL;
 
 	return (void *)((intptr_t)arr->data + (i * arr->isize));
 }
 
-void array_set(struct array *arr, size_t i, void *data) {
+void array_set(struct array *const arr, const size_t i, const void *const data) {
 	void *dest;
 
 	if (arr == NULL) return;
@@ -90,7 +90,7 @@ void array_set(struct array *arr, size_t i, void *data) {
 	memcpy(dest, data, arr->isize);
 }
 
-void array_push(struct array *arr, void *data) {
+void array_push(struct array *const arr, const void *const data) {
 	void *dest;
 
 	if (arr == NULL) return;
@@ -106,7 +106,7 @@ void array_push(struct array *arr, void *data) {
 	memcpy(dest, data, arr->isize);
 }
 
-void *array_pop(struct array *arr) {
+void *array_pop(struct array *const arr) {
 	if (arr == NULL) return NULL;
 	if (arr->size < 1) return NULL;
 
@@ -115,18 +115,15 @@ void *array_pop(struct array *arr) {
 	return (void *)((intptr_t)arr->data + (arr->size * arr->isize));
 }
 
-ssize_t array_get_cap(struct array *arr) {
-	if (arr == NULL) return -1;
-	return arr->cap;
+size_t array_get_cap(const struct array *const arr) {
+	return arr != NULL ? arr->cap : 0;
 }
 
-ssize_t array_get_size(struct array *arr) {
-	if (arr == NULL) return -1;
-	return arr->size;
+size_t array_get_size(const struct array *const arr) {
+	return arr != NULL ? arr->size : 0;
 }
 
-ssize_t array_get_isize(struct array *arr) {
-	if (arr == NULL) return -1;
-	return arr->isize;
+size_t array_get_isize(const struct array *const arr) {
+	return arr != NULL ? arr->isize : 0;
 }
 
