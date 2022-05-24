@@ -1,6 +1,9 @@
 # Flake result
 result
 
+# direnv
+/.direnv/
+
 /buscalocal
 
 # Prerequisites
