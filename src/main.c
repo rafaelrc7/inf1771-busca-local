@@ -1,3 +1,4 @@
+#include <float.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -220,14 +221,12 @@ static double time_stages(const uint8_t genes[STAGES], const double agilities[CH
 }
 
 static int solution_sort(const void *ptr1, const void *ptr2) {
-	double diff = ((Solution *)ptr1)->time - ((Solution *)ptr2)->time;
-
-	if (diff < 0)
-		return -1;
-	else if (diff == 0)
-		return 0;
-	else
+	if (((Solution *)ptr1)->fitness < ((Solution *)ptr2)->fitness)
 		return 1;
+	else if (((Solution *)ptr1)->fitness > ((Solution *)ptr2)->fitness)
+		return -1;
+	else
+		return 0;
 }
 
 static double total_fitness(const Solution *const solutions, size_t solutions_num) {
@@ -256,6 +255,7 @@ static size_t roulette(const Solution *const solutions, const size_t solutions_n
 }
 
 static double fitness(const Solution solution) {
-	return 1.0 / solution.time;
+	static const double scale = 10000;
+	return solution.time > 0.0 ?  1.0 / solution.time * scale : DBL_MAX;
 }
 
