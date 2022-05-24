@@ -69,16 +69,16 @@ int main(void) {
 				new_solutions[i].genes[j] = select ? solutions[parent1].genes[j] : solutions[parent2].genes[j];
 			}
 
-			mut = random() % 100;
+			mut = random() % 100 * (g / GENERATIONS);
 
-			if (mut < 25) {
+			if (mut < 10) {
 				size_t id1 = random() % STAGES;
 				size_t id2 = random() % STAGES;
 
 				uint8_t tmp = new_solutions[i].genes[id2];
 				new_solutions[i].genes[id2] = new_solutions[i].genes[id1];
 				new_solutions[i].genes[id1] = tmp;
-			} else if (mut < 50) {
+			} else if (mut < 20) {
 				size_t id1 = random() % STAGES;
 				size_t id2 = random() % STAGES;
 				uint8_t mask = 1 << (random() % CHARS);
@@ -86,6 +86,20 @@ int main(void) {
 				uint8_t tmp = new_solutions[i].genes[id2] & mask;
 				new_solutions[i].genes[id2] = (new_solutions[i].genes[id2] & ~mask) | (new_solutions[i].genes[id1] & mask);
 				new_solutions[i].genes[id1] = (new_solutions[i].genes[id1] & ~mask) | tmp;
+			} else if (mut < 30) {
+				size_t id1 = random() % STAGES;
+				size_t id2 = random() % STAGES;
+				uint8_t mask1 = 1 << (random() % CHARS);
+				uint8_t mask2 = 1 << (random() % CHARS);
+
+				uint8_t tmp1 = new_solutions[i].genes[id2] & mask1;
+				uint8_t tmp2 = new_solutions[i].genes[id2] & mask2;
+
+				new_solutions[i].genes[id2] = (new_solutions[i].genes[id2] & ~mask1) | (new_solutions[i].genes[id1] & mask1);
+				new_solutions[i].genes[id2] = (new_solutions[i].genes[id2] & ~mask2) | (new_solutions[i].genes[id1] & mask2);
+
+				new_solutions[i].genes[id1] = (new_solutions[i].genes[id1] & ~mask1) | tmp1;
+				new_solutions[i].genes[id1] = (new_solutions[i].genes[id1] & ~mask2) | tmp2;
 			}
 
 			if (validate_genes(new_solutions[i].genes)) {
