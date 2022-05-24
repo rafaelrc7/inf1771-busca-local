@@ -14,7 +14,7 @@
 #define STARTPOOL	1000
 #define SONS		1000
 #define KEEP		3
-#define GENERATIONS 10000
+#define GENERATIONS 100000
 
 struct solution {
 	uint8_t genes[STAGES];
