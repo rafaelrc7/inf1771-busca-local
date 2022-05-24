@@ -29,7 +29,7 @@ static void print_solutions(const Solution *const solutions, const size_t size, 
 static double time_stage(const uint8_t gene, const double agilities[CHARS], const uint8_t stage);
 static double time_stages(const uint8_t genes[STAGES], const double agilities[CHARS]);
 static int solution_sort(const void *ptr1, const void *ptr2);
-static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double agilities[CHARS], const double total_fitness);
+static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double total_fitness);
 static double total_fitness(const Solution *const solutions, size_t solutions_num);
 static double fitness(const Solution solution);
 
@@ -60,8 +60,8 @@ int main(void) {
 
 		for (; i < SONS + KEEP;) {
 			size_t j, mut;
-			size_t parent1 = roulette(solutions, individual_count, agilities, total_fitness_val);
-			size_t parent2 = roulette(solutions, individual_count, agilities, total_fitness_val);
+			size_t parent1 = roulette(solutions, individual_count, total_fitness_val);
+			size_t parent2 = roulette(solutions, individual_count, total_fitness_val);
 
 			for (j = 0; j < STAGES; ++j) {
 				uint8_t select = random() % 2;
@@ -145,7 +145,6 @@ static size_t generate_possible_genes(struct array **possible_genes) {
 }
 
 static int generate_genes(Solution *solutions, const size_t size, const double agilities[CHARS]) {
-	uint64_t gene;
 	struct array *possible_genes;
 	size_t i, j, k, possible_genes_num;
 
@@ -241,7 +240,7 @@ static double total_fitness(const Solution *const solutions, size_t solutions_nu
 	return sum;
 }
 
-static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double agilities[CHARS], const double total_fitness) {
+static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double total_fitness) {
 	size_t i;
 	double r = random() / (double)RAND_MAX;
 
