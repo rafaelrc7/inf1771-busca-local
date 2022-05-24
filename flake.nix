@@ -14,7 +14,8 @@
         buscalocal = with pkgs; stdenv.mkDerivation rec {
           name = "buscalocal";
           src = ./.;
-          nativeBuildInputs = [ autoreconfHook ];
+          buildInputs = [ ];
+          nativeBuildInputs = [ pkg-config autoreconfHook ];
         };
     in {
 
@@ -22,13 +23,13 @@
 
       devShell = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [
+          autoconf
+          automake
           bash
           gcc
           gnumake
-          autoconf
-          automake
-          clang-tools
           gdb
+          pkg-config
           valgrind
         ];
       };
