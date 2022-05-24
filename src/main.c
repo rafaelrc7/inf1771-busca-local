@@ -70,15 +70,17 @@ int main(void) {
 			}
 
 			mut = random() % 100 * (g / GENERATIONS);
-
-			if (mut < 10) {
+			if (mut < 50) {
 				size_t id1 = random() % STAGES;
 				size_t id2 = random() % STAGES;
 
 				uint8_t tmp = new_solutions[i].genes[id2];
 				new_solutions[i].genes[id2] = new_solutions[i].genes[id1];
 				new_solutions[i].genes[id1] = tmp;
-			} else if (mut < 20) {
+			}
+
+			mut = random() % 100 * (g / GENERATIONS);
+			if (mut < 50) {
 				size_t id1 = random() % STAGES;
 				size_t id2 = random() % STAGES;
 				uint8_t mask = 1 << (random() % CHARS);
@@ -86,7 +88,10 @@ int main(void) {
 				uint8_t tmp = new_solutions[i].genes[id2] & mask;
 				new_solutions[i].genes[id2] = (new_solutions[i].genes[id2] & ~mask) | (new_solutions[i].genes[id1] & mask);
 				new_solutions[i].genes[id1] = (new_solutions[i].genes[id1] & ~mask) | tmp;
-			} else if (mut < 30) {
+			}
+
+			mut = random() % 100 * (g / GENERATIONS);
+			if (mut < 50) {
 				size_t id1 = random() % STAGES;
 				size_t id2 = random() % STAGES;
 				uint8_t mask1 = 1 << (random() % CHARS);
@@ -205,7 +210,7 @@ static void print_solutions(const Solution *const solutions, const size_t size, 
 			buff[k] = 0;
 			printf("%s ", buff);
 		}
-		printf("\t%.05f\n", solutions[i].time);
+		printf("\t%.06f\n", solutions[i].time);
 	}
 }
 
