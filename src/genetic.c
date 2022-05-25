@@ -6,6 +6,7 @@
 
 #include "settings.h"
 #include "array.h"
+#include "random_utils.h"
 
 #define PRINT_GENS
 
@@ -63,26 +64,26 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			uint8_t mut;
 
 			for (j = 0; j < STAGES; ++j) {
-				uint8_t select = random() % 2;
+				uint8_t select = random_prob(2);
 				solutions_swap[i].genes[j] = select ?
 					solutions[parent1].genes[j] : solutions[parent2].genes[j];
 			}
 
-			mut = random() % 100 * (generation / generation_num);
+			mut = random_lim(100);
 			if (mut < 50) {
-				size_t id1 = random() % STAGES;
-				size_t id2 = random() % STAGES;
+				size_t id1 = random_lim(STAGES);
+				size_t id2 = random_lim(STAGES);
 
 				uint8_t tmp = solutions_swap[i].genes[id2];
 				solutions_swap[i].genes[id2] = solutions_swap[i].genes[id1];
 				solutions_swap[i].genes[id1] = tmp;
 			}
 
-			mut = random() % 100 * (generation / generation_num);
+			mut = random_lim(100);
 			if (mut < 50) {
-				size_t id1 = random() % STAGES;
-				size_t id2 = random() % STAGES;
-				uint8_t mask = 1 << (random() % CHARS);
+				size_t id1 = random_lim(STAGES);
+				size_t id2 = random_lim(STAGES);
+				uint8_t mask = 1 << (random_lim(CHARS));
 
 				uint8_t tmp = solutions_swap[i].genes[id2] & mask;
 				solutions_swap[i].genes[id2] =
@@ -93,12 +94,12 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 					| tmp;
 			}
 
-			mut = random() % 100 * (generation / generation_num);
+			mut = random_lim(100);
 			if (mut < 50) {
-				size_t id1 = random() % STAGES;
-				size_t id2 = random() % STAGES;
-				uint8_t mask1 = 1 << (random() % CHARS);
-				uint8_t mask2 = 1 << (random() % CHARS);
+				size_t id1 = random_lim(STAGES);
+				size_t id2 = random_lim(STAGES);
+				uint8_t mask1 = 1 << (random_lim(CHARS));
+				uint8_t mask2 = 1 << (random_lim(CHARS));
 
 				uint8_t tmp1 = solutions_swap[i].genes[id2] & mask1;
 				uint8_t tmp2 = solutions_swap[i].genes[id2] & mask2;
@@ -187,7 +188,7 @@ static int generate_genes(Solution *solutions, const size_t size, const double a
 	for (i = 0; i < size;) {
 		uint64_t char_genes[CHARS];
 		for (j = 0; j < CHARS; ++j) {
-			memcpy(&char_genes[j], array_get(possible_genes, random() % possible_genes_num), sizeof(uint64_t));
+			memcpy(&char_genes[j], array_get(possible_genes, random_lim(possible_genes_num)), sizeof(uint64_t));
 		}
 
 		memset(solutions[i].genes, 0, sizeof(uint8_t) * STAGES);
