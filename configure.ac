@@ -12,6 +12,7 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 
 # Checks for libraries.
+PKG_CHECK_MODULES([SDL2], [sdl2])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h])

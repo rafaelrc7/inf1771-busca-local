@@ -15,7 +15,7 @@
           name = "buscalocal";
           src = ./.;
           buildInputs = [ ];
-          nativeBuildInputs = [ pkg-config autoreconfHook ];
+          nativeBuildInputs = [ pkg-config SDL2 autoreconfHook ];
         };
     in {
 
@@ -30,6 +30,7 @@
           gnumake
           gdb
           pkg-config
+          SDL2
           valgrind
         ];
       };
