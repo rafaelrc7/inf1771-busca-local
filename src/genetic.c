@@ -4,6 +4,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "genetic.h"
+
 #include "settings.h"
 #include "array.h"
 #include "random_utils.h"
@@ -27,11 +29,13 @@ static double fitness(const Solution solution);
 int solution_sort(const void *ptr1, const void *ptr2);
 
 double gen_solve(const double agilities[CHARS], const size_t generation_num,
-			 const size_t individual_num, const size_t elite_num)
+			 const size_t individual_num, const double elite_percent)
 {
 	Solution *solutions, *solutions_swap, *tmp;
 	size_t generation;
 	double time;
+
+	size_t elite_num = (size_t)(elite_percent * individual_num);
 
 	if (elite_num > individual_num)
 		return -1;

@@ -7,7 +7,7 @@
 #include "sdl2_app.h"
 
 #define INDIVIDUALS	1000
-#define ELITE		3
+#define ELITE_P		0.005
 #define GENERATIONS 100000
 
 int main(int argc, char **argv) {
@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	srandom(time(NULL));
 
 	/*sdl2_app(argc, argv);*/
-	gen_solve(agilities, GENERATIONS, INDIVIDUALS, ELITE);
+	gen_solve(agilities, GENERATIONS, INDIVIDUALS, ELITE_P);
 
 	return 0;
 }
