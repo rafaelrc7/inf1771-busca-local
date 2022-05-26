@@ -17,7 +17,6 @@ struct _sdl2_app {
 	size_t width, height;
 	SDL_Window *window;
 	SDL_Renderer *win_renderer;
-	SDL_Surface *win_surface;
 	SDL_Texture *win_texture;
 };
 typedef struct _sdl2_app SDL2_App;
@@ -93,10 +92,6 @@ int sdl2_app(int argc, char **argv) {
 				SDL_WINDOWPOS_CENTERED, app.width, app.height, 0);
 	if (app.window == NULL)
 		sdl2_fatal("SDL_CreateWindow()");
-
-	app.win_surface = SDL_GetWindowSurface(app.window);
-	if (app.win_surface == NULL)
-		sdl2_fatal("SDL_GetWindowSurface()");
 
 	app.win_renderer = SDL_CreateRenderer(app.window, -1, 0);
 	if (app.win_renderer == NULL)
