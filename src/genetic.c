@@ -43,7 +43,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 	generate_genes(solutions, individual_num, agilities);
 
 	for (generation = 0; generation < generation_num; ++generation) {
-		size_t i;
+		size_t i, j;
 		double total_fitness_val = total_fitness(solutions, individual_num);
 
 		qsort(solutions, individual_num, sizeof(Solution), &solution_sort);
@@ -53,12 +53,21 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 		print_solutions(solutions, individual_num, 5);
 		#endif
 
-		for (i = 0; i < elite_num; ++i) {
-			solutions_swap[i] = solutions[i];
+		if (elite_num > 0) {
+			solutions_swap[0] = solutions[0];
+			i = 1;
+			for (j = i; i < elite_num; ++j) {
+				solutions_swap[i] = solutions[j];
+
+				if (memcmp(solutions_swap[i-1].genes, solutions_swap[i].genes, sizeof(uint8_t) * STAGES) != 0) {
+					++i;
+				}
+			}
+		} else {
+			i = 0;
 		}
 
 		for (; i < individual_num;) {
-			size_t j;
 			size_t parent1 = roulette(solutions, individual_num, total_fitness_val);
 			size_t parent2 = roulette(solutions, individual_num, total_fitness_val);
 			uint8_t mut;
