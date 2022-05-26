@@ -38,7 +38,7 @@ fail0:
 }
 
 Map *map_create_from_file(const size_t width, const size_t height, FILE *f) {
-	size_t h = 0, w = 0;
+	size_t h = 0;
 	char *buff, *ret;
 	Map *map;
 

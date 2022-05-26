@@ -11,13 +11,16 @@
 #define ELITE_P		0.005
 #define GENERATIONS 100000
 
+static void usage(const char *const prog);
+
 int main(int argc, char **argv) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
 	srandom(time(NULL));
 
 	if (argc == 1) {
-
-	} else if (argc == 2) {
+		usage(argv[0]);
+		return EXIT_FAILURE;
+	} else {
 		switch (argv[1][0]) {
 			case 'g':
 				gen_solve(agilities, GENERATIONS, INDIVIDUALS, ELITE_P);
@@ -27,12 +30,24 @@ int main(int argc, char **argv) {
 				sdl2_app(argc, argv);
 				break;
 
-			default:
+			case 'm': {
+				Map *map = map_create_from_file(300, 82, stdin);
+				map_print(map);
+				map_destroy(map);
 				break;
+			}
+
+			default:
+				usage(argv[0]);
+				return EXIT_FAILURE;
 		}
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
+static void usage(const char *const prog) {
+	fprintf(stderr, "USAGE: %1$s [g,a,m]\n"
+					"       %1$s a <file>\n", prog);
+}
 
