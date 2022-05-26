@@ -4,6 +4,7 @@
 
 #include "settings.h"
 #include "genetic.h"
+#include "map.h"
 #include "sdl2_app.h"
 
 #define INDIVIDUALS	1000
@@ -14,8 +15,22 @@ int main(int argc, char **argv) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
 	srandom(time(NULL));
 
-	/*sdl2_app(argc, argv);*/
-	gen_solve(agilities, GENERATIONS, INDIVIDUALS, ELITE_P);
+	if (argc == 1) {
+
+	} else if (argc == 2) {
+		switch (argv[1][0]) {
+			case 'g':
+				gen_solve(agilities, GENERATIONS, INDIVIDUALS, ELITE_P);
+				break;
+
+			case 'a':
+				sdl2_app(argc, argv);
+				break;
+
+			default:
+				break;
+		}
+	}
 
 	return 0;
 }

@@ -5,6 +5,8 @@
 
 #include <SDL2/SDL.h>
 
+#include "map.h"
+
 #define APP_NAME "INF1771 T1"
 
 #define WIDTH	640
@@ -30,11 +32,16 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 	uint8_t keep_alive = 1;
 
 	uint32_t pixels[WIDTH * HEIGHT];
+	uint32_t map_pixels[300 * 82];
+
+	Map *map = map_create_from_file(300, 82, stdin);
 
 	memset(pixels, 0xFF, WIDTH * HEIGHT * sizeof(uint32_t));
 
 	while (keep_alive) {
 		SDL_Event e;
+
+		map_to_pixels(map, map_pixels);
 
 		SDL_UpdateTexture(app.win_texture, NULL, pixels, WIDTH * sizeof(uint32_t));
 
@@ -51,6 +58,7 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 		SDL_RenderPresent(app.win_renderer);
 	}
 
+	map_destroy(map);
 	return EXIT_SUCCESS;
 }
 
