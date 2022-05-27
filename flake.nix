@@ -26,6 +26,7 @@
           autoconf
           automake
           bash
+          binutils
           gcc
           gnumake
           gdb
