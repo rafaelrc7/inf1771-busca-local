@@ -64,7 +64,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 50) {
+			if (mut < 20 * generation/generation_num) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 
@@ -74,7 +74,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 50) {
+			if (mut < 20 * generation/generation_num) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask = 1 << (random_lim(CHARS));
@@ -89,7 +89,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 50) {
+			if (mut < 20 * generation/generation_num) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask1 = 1 << (random_lim(CHARS));
