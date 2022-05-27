@@ -20,8 +20,9 @@ AC_CHECK_HEADERS([stdint.h])
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
 AC_TYPE_SIZE_T
-AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
