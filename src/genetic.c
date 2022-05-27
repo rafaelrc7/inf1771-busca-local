@@ -12,6 +12,8 @@
 
 #define PRINT_GENS
 
+#define MUT_BASE	95
+
 struct individual {
 	uint8_t genes[STAGES];
 	double time;
@@ -50,7 +52,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 
 		#ifdef PRINT_GENS
 		printf("\n----- GENERATION %lu (%lu/%lu) -----\n", generation, population_size, pop_cap);
-		print_population(population, population_size, 5);
+		print_population(population, population_size, 10);
 		#endif
 
 		for (i = population_size; i < population_size + pop_step;) {
@@ -65,32 +67,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 70 * generation/generation_num + 1) {
-				size_t id1 = random_lim(STAGES);
-				size_t id2 = random_lim(STAGES);
-
-				uint8_t tmp = population[i].genes[id2];
-				population[i].genes[id2] = population[i].genes[id1];
-				population[i].genes[id1] = tmp;
-			}
-
-			mut = random_lim(100);
-			if (mut < 70 * generation/generation_num + 1) {
-				size_t id1 = random_lim(STAGES);
-				size_t id2 = random_lim(STAGES);
-				uint8_t mask = 1 << (random_lim(CHARS));
-
-				uint8_t tmp = population[i].genes[id2] & mask;
-				population[i].genes[id2] =
-					(population[i].genes[id2] & ~mask)
-					| (population[i].genes[id1]);
-				population[i].genes[id1] =
-					(population[i].genes[id1] & ~mask)
-					| tmp;
-			}
-
-			mut = random_lim(100);
-			if (mut < 70 * generation/generation_num + 1) {
+			if (mut < MUT_BASE * generation/generation_num + 1) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask1 = 1 << (random_lim(CHARS));
