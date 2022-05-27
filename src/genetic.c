@@ -12,6 +12,9 @@
 
 #define PRINT_GENS
 
+#define INDV_STEP	((size_t)500)
+#define	INDV_CAP	((size_t)2000)
+
 struct solution {
 	uint8_t genes[STAGES];
 	double time;
@@ -26,59 +29,40 @@ static double time_stages(const uint8_t genes[STAGES], const double agilities[CH
 static size_t roulette(const Solution *const solutions, const size_t solutions_num, const double total_fitness);
 static double total_fitness(const Solution *const solutions, size_t solutions_num);
 static double fitness(const Solution solution);
+static size_t cut_solutions(Solution *const solutions, const size_t solutions_cap, const size_t solutions_num);
 int solution_sort(const void *ptr1, const void *ptr2);
 
 double gen_solve(const double agilities[CHARS], const size_t generation_num,
-			 const size_t individual_num, const double elite_percent)
+			 const size_t _individual_num, const double elite_percent)
 {
-	Solution *solutions, *solutions_swap, *tmp;
-	size_t generation;
+	Solution *solutions;
+	size_t generation, solutions_num;
 	double time;
 
-	size_t elite_num = (size_t)(elite_percent * individual_num);
+	solutions = (Solution *)calloc(INDV_CAP + INDV_STEP, sizeof(Solution));
 
-	if (elite_num > individual_num)
-		return -1;
+	generate_genes(solutions, INDV_STEP, agilities);
+	solutions_num = INDV_STEP;
 
-	solutions      = (Solution *)calloc(individual_num, sizeof(Solution));
-	solutions_swap = (Solution *)calloc(individual_num, sizeof(Solution));
-	tmp            = NULL;
-
-	generate_genes(solutions, individual_num, agilities);
+	qsort(solutions, solutions_num, sizeof(Solution), &solution_sort);
 
 	for (generation = 0; generation < generation_num; ++generation) {
 		size_t i, j;
-		double total_fitness_val = total_fitness(solutions, individual_num);
-
-		qsort(solutions, individual_num, sizeof(Solution), &solution_sort);
+		double total_fitness_val = total_fitness(solutions, solutions_num);
 
 		#ifdef PRINT_GENS
-		printf("\n----- GENERATION %lu -----\n", generation);
-		print_solutions(solutions, individual_num, 5);
+		printf("\n----- GENERATION %lu (%lu/%lu) -----\n", generation, solutions_num, INDV_CAP);
+		print_solutions(solutions, solutions_num, 5);
 		#endif
 
-		if (elite_num > 0) {
-			solutions_swap[0] = solutions[0];
-			i = 1;
-			for (j = i; i < elite_num; ++j) {
-				solutions_swap[i] = solutions[j];
-
-				if (memcmp(solutions_swap[i-1].genes, solutions_swap[i].genes, sizeof(uint8_t) * STAGES) != 0) {
-					++i;
-				}
-			}
-		} else {
-			i = 0;
-		}
-
-		for (; i < individual_num;) {
-			size_t parent1 = roulette(solutions, individual_num, total_fitness_val);
-			size_t parent2 = roulette(solutions, individual_num, total_fitness_val);
+		for (i = solutions_num; i < solutions_num + INDV_STEP;) {
+			size_t parent1 = roulette(solutions, solutions_num, total_fitness_val);
+			size_t parent2 = roulette(solutions, solutions_num, total_fitness_val);
 			uint8_t mut;
 
 			for (j = 0; j < STAGES; ++j) {
 				uint8_t select = random_prob(2);
-				solutions_swap[i].genes[j] = select ?
+				solutions[i].genes[j] = select ?
 					solutions[parent1].genes[j] : solutions[parent2].genes[j];
 			}
 
@@ -87,9 +71,9 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 
-				uint8_t tmp = solutions_swap[i].genes[id2];
-				solutions_swap[i].genes[id2] = solutions_swap[i].genes[id1];
-				solutions_swap[i].genes[id1] = tmp;
+				uint8_t tmp = solutions[i].genes[id2];
+				solutions[i].genes[id2] = solutions[i].genes[id1];
+				solutions[i].genes[id1] = tmp;
 			}
 
 			mut = random_lim(100);
@@ -98,12 +82,12 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask = 1 << (random_lim(CHARS));
 
-				uint8_t tmp = solutions_swap[i].genes[id2] & mask;
-				solutions_swap[i].genes[id2] =
-					(solutions_swap[i].genes[id2] & ~mask)
-					| (solutions_swap[i].genes[id1]);
-				solutions_swap[i].genes[id1] =
-					(solutions_swap[i].genes[id1] & ~mask)
+				uint8_t tmp = solutions[i].genes[id2] & mask;
+				solutions[i].genes[id2] =
+					(solutions[i].genes[id2] & ~mask)
+					| (solutions[i].genes[id1]);
+				solutions[i].genes[id1] =
+					(solutions[i].genes[id1] & ~mask)
 					| tmp;
 			}
 
@@ -114,43 +98,48 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 				uint8_t mask1 = 1 << (random_lim(CHARS));
 				uint8_t mask2 = 1 << (random_lim(CHARS));
 
-				uint8_t tmp1 = solutions_swap[i].genes[id2] & mask1;
-				uint8_t tmp2 = solutions_swap[i].genes[id2] & mask2;
+				uint8_t tmp1 = solutions[i].genes[id2] & mask1;
+				uint8_t tmp2 = solutions[i].genes[id2] & mask2;
 
-				solutions_swap[i].genes[id2] =
-					(solutions_swap[i].genes[id2] & ~mask1)
-					| (solutions_swap[i].genes[id1] & mask1);
-				solutions_swap[i].genes[id2] =
-					(solutions_swap[i].genes[id2] & ~mask2)
-					| (solutions_swap[i].genes[id1] & mask2);
+				solutions[i].genes[id2] =
+					(solutions[i].genes[id2] & ~mask1)
+					| (solutions[i].genes[id1] & mask1);
+				solutions[i].genes[id2] =
+					(solutions[i].genes[id2] & ~mask2)
+					| (solutions[i].genes[id1] & mask2);
 
-				solutions_swap[i].genes[id1] =
-					(solutions_swap[i].genes[id1] & ~mask1)
+				solutions[i].genes[id1] =
+					(solutions[i].genes[id1] & ~mask1)
 					| tmp1;
-				solutions_swap[i].genes[id1] =
-					(solutions_swap[i].genes[id1] & ~mask2)
+				solutions[i].genes[id1] =
+					(solutions[i].genes[id1] & ~mask2)
 					| tmp2;
 			}
 
-			if (validate_genes(solutions_swap[i].genes)) {
-				solutions_swap[i].time = time_stages(solutions_swap[i].genes, agilities);
-				solutions_swap[i].fitness = fitness(solutions_swap[i]);
+			if (validate_genes(solutions[i].genes)) {
+				solutions[i].time = time_stages(solutions[i].genes, agilities);
+				solutions[i].fitness = fitness(solutions[i]);
 				++i;
 			}
 		}
 
-		tmp = solutions;
-		solutions = solutions_swap;
-		solutions_swap = tmp;
-		tmp = NULL;
+		solutions_num += INDV_STEP;
+		if (solutions_num > INDV_CAP)
+			solutions_num = cut_solutions(solutions, INDV_CAP, solutions_num);
 	}
 
 	time = solutions[0].time;
 
 	free(solutions);
-	free(solutions_swap);
 
 	return time;
+}
+
+/* TODO: Implement random removal here */
+static size_t cut_solutions(Solution *const solutions, const size_t solutions_cap, const size_t solutions_num) {
+	qsort(solutions, solutions_num, sizeof(Solution), &solution_sort);
+
+	return solutions_cap;
 }
 
 static int validate_genes(const uint8_t genes[STAGES]) {
