@@ -7,9 +7,9 @@
 #include "map.h"
 #include "sdl2_app.h"
 
-#define INDIVIDUALS	1000
-#define ELITE_P		0.005
-#define GENERATIONS 100000
+#define POP_CAP		2000
+#define POP_STEP	500
+#define GENERATIONS 500
 
 static void usage(const char *const prog);
 
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 	} else {
 		switch (argv[1][0]) {
 			case 'g':
-				gen_solve(agilities, GENERATIONS, INDIVIDUALS, ELITE_P);
+				gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
 				break;
 
 			case 'a':

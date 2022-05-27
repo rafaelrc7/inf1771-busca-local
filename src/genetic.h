@@ -6,7 +6,7 @@
 #include "settings.h"
 
 double gen_solve(const double agilities[CHARS], const size_t generation_num,
-			 const size_t individual_num, const double elite_percent);
+				 const size_t pop_step, const size_t pop_cap);
 
 #endif
 

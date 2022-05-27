@@ -12,9 +12,6 @@
 
 #define PRINT_GENS
 
-#define INDV_STEP	((size_t)500)
-#define	INDV_CAP	((size_t)2000)
-
 struct solution {
 	uint8_t genes[STAGES];
 	double time;
@@ -33,16 +30,16 @@ static size_t cut_solutions(Solution *const solutions, const size_t solutions_ca
 int solution_sort(const void *ptr1, const void *ptr2);
 
 double gen_solve(const double agilities[CHARS], const size_t generation_num,
-			 const size_t _individual_num, const double elite_percent)
+				 const size_t pop_step, const size_t pop_cap)
 {
 	Solution *solutions;
 	size_t generation, solutions_num;
 	double time;
 
-	solutions = (Solution *)calloc(INDV_CAP + INDV_STEP, sizeof(Solution));
+	solutions = (Solution *)calloc(pop_cap + pop_step, sizeof(Solution));
 
-	generate_genes(solutions, INDV_STEP, agilities);
-	solutions_num = INDV_STEP;
+	generate_genes(solutions, pop_step, agilities);
+	solutions_num = pop_step;
 
 	qsort(solutions, solutions_num, sizeof(Solution), &solution_sort);
 
@@ -51,11 +48,11 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 		double total_fitness_val = total_fitness(solutions, solutions_num);
 
 		#ifdef PRINT_GENS
-		printf("\n----- GENERATION %lu (%lu/%lu) -----\n", generation, solutions_num, INDV_CAP);
+		printf("\n----- GENERATION %lu (%lu/%lu) -----\n", generation, solutions_num, pop_cap);
 		print_solutions(solutions, solutions_num, 5);
 		#endif
 
-		for (i = solutions_num; i < solutions_num + INDV_STEP;) {
+		for (i = solutions_num; i < solutions_num + pop_step;) {
 			size_t parent1 = roulette(solutions, solutions_num, total_fitness_val);
 			size_t parent2 = roulette(solutions, solutions_num, total_fitness_val);
 			uint8_t mut;
@@ -123,9 +120,9 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 		}
 
-		solutions_num += INDV_STEP;
-		if (solutions_num > INDV_CAP)
-			solutions_num = cut_solutions(solutions, INDV_CAP, solutions_num);
+		solutions_num += pop_step;
+		if (solutions_num > pop_cap)
+			solutions_num = cut_solutions(solutions, pop_cap, solutions_num);
 	}
 
 	time = solutions[0].time;
