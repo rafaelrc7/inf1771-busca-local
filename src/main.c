@@ -9,7 +9,7 @@
 
 #define POP_CAP		2000
 #define POP_STEP	500
-#define GENERATIONS 500
+#define GENERATIONS 1300
 
 static void usage(const char *const prog);
 

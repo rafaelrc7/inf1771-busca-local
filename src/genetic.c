@@ -27,6 +27,7 @@ static size_t roulette(const Individual *const population, const size_t populati
 static double total_fitness(const Individual *const population, size_t population_size);
 static double fitness(const Individual solution);
 static size_t cut_population(Individual *const population, const size_t population_cap, const size_t population_size);
+static size_t remove_duplicates(Individual *const population, size_t population_size);
 int solution_sort(const void *ptr1, const void *ptr2);
 
 double gen_solve(const double agilities[CHARS], const size_t generation_num,
@@ -64,7 +65,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 20 * generation/generation_num) {
+			if (mut < 70 * generation/generation_num + 1) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 
@@ -74,7 +75,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 20 * generation/generation_num) {
+			if (mut < 70 * generation/generation_num + 1) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask = 1 << (random_lim(CHARS));
@@ -89,7 +90,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < 20 * generation/generation_num) {
+			if (mut < 70 * generation/generation_num + 1) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask1 = 1 << (random_lim(CHARS));
@@ -121,6 +122,8 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 		}
 
 		population_size += pop_step;
+		qsort(population, population_size, sizeof(Individual), &solution_sort);
+		population_size = remove_duplicates(population, population_size);
 		if (population_size > pop_cap)
 			population_size = cut_population(population, pop_cap, population_size);
 	}
@@ -134,9 +137,35 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 
 /* TODO: Implement random removal here */
 static size_t cut_population(Individual *const population, const size_t population_cap, const size_t population_size) {
-	qsort(population, population_size, sizeof(Individual), &solution_sort);
-
 	return population_cap;
+}
+
+static size_t remove_duplicates(Individual *const population, size_t population_size) {
+	size_t i;
+	uint8_t *should_be_removed = (uint8_t *)calloc(population_size, sizeof(uint8_t));
+
+	for (i = 1; i < population_size; ++i) {
+		size_t j;
+		double fitness = population[i-1].fitness;
+
+		if (should_be_removed[i])
+			continue;
+
+		for (j = i; population[j].fitness == fitness && j < population_size; ++j) {
+			if (memcmp(population[j].genes, population[i-1].genes, sizeof(uint8_t) * STAGES) == 0)
+				should_be_removed[j] = 1;
+		}
+	}
+
+	for (i = population_size-1; i > 0; --i) {
+		if (should_be_removed[i]) {
+			if (i != population_size-1)
+				memcpy(&population[i], &population[i+1], sizeof(Individual) * (population_size - i - 1));
+			--population_size;
+		}
+	}
+
+	return population_size;
 }
 
 static int validate_genes(const uint8_t genes[STAGES]) {
