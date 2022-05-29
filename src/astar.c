@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdbool.h>
+#include <float.h>
 
 // A C++ Program to implement A* Search Algorithm
 //#include <bits/stdc++.h>
@@ -68,36 +72,40 @@ int isDestination(int row, int col, Pair dest)
 // A Utility Function to calculate the 'h' heuristics.
 double calculateHValue(int row, int col, Pair dest)
 {
+	double x = ((row - dest.p1) * (row - dest.p1) + (col - dest.p2) * (col - dest.p2));
+	x = sqrt(x);
 	// Return using the distance formula
-	return ((double)sqrt(
-		(row - dest.p1) * (row - dest.p1)
-		+ (col - dest.p2) * (col - dest.p2)));
+	return  x;
 }
 
 // A Utility Function to trace the path from the source
 // to destination
-void tracePath(Cell cellDetails[][COL], Pair dest)
+void tracePath(Cell cellDetails[][COL],Pair dest)
 {
 	printf("\nThe Path is ");
 	int row = dest.p1;
 	int col = dest.p2;
 
-	stack<Pair> Path;
+	Pair *Path;
 
 	while (!(cellDetails[row][col].parent_i == row
 			&& cellDetails[row][col].parent_j == col)) {
-		Path.push(make_pair(row, col));
+		Path->p1 = row;
+		Path->p2 = col;
 		int temp_row = cellDetails[row][col].parent_i;
 		int temp_col = cellDetails[row][col].parent_j;
 		row = temp_row;
 		col = temp_col;
+		Path++;
 	}
 
-	Path.push(make_pair(row, col));
-	while (!Path.empty()) {
-		pair<int, int> p = Path.top();
-		Path.pop();
-		printf("-> (%d,%d) ", p.first, p.second);
+	Path->p1 = row;
+	Path->p2 = col;
+	while (!Path) {
+		Pair p;
+		p = *Path;
+		Path--;
+		printf("-> (%d,%d) ", p.p1, p.p2);
 	}
 
 	return;
@@ -109,27 +117,27 @@ void tracePath(Cell cellDetails[][COL], Pair dest)
 void aStarSearch(int grid[][COL], Pair src, Pair dest)
 {
 	// If the source is out of range
-	if (isValid(src.first, src.second) == false) {
+	if (isValid(src.p1, src.p2) == false) {
 		printf("Source is invalid\n");
 		return;
 	}
 
 	// If the destination is out of range
-	if (isValid(dest.first, dest.second) == false) {
+	if (isValid(dest.p1, dest.p2) == false) {
 		printf("Destination is invalid\n");
 		return;
 	}
 
 	// Either the source or the destination is blocked
-	if (isUnBlocked(grid, src.first, src.second) == false
-		|| isUnBlocked(grid, dest.first, dest.second)
+	if (isUnBlocked(grid, src.p1, src.p2) == false
+		|| isUnBlocked(grid, dest.p1, dest.p2)
 			== false) {
 		printf("Source or the destination is blocked\n");
 		return;
 	}
 
 	// If the destination cell is the same as source cell
-	if (isDestination(src.first, src.second, dest)
+	if (isDestination(src.p1, src.p2, dest)
 		== true) {
 		printf("We are already at the destination\n");
 		return;
@@ -143,7 +151,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 
 	// Declare a 2D array of structure to hold the details
 	// of that cell
-	cell cellDetails[ROW][COL];
+	Cell cellDetails[ROW][COL];
 
 	int i, j;
 
@@ -158,7 +166,7 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 	}
 
 	// Initialising the parameters of the starting node
-	i = src.first, j = src.second;
+	i = src.p1, j = src.p2;
 	cellDetails[i][j].f = 0.0;
 	cellDetails[i][j].g = 0.0;
 	cellDetails[i][j].h = 0.0;
@@ -173,25 +181,27 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 	Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
 	This open list is implemented as a set of pair of
 	pair.*/
-	set<pPair> openList;
+	pPair *openList;
 
 	// Put the starting cell on the open list and set its
 	// 'f' as 0
-	openList.insert(make_pair(0.0, make_pair(i, j)));
+	openList->d = 0.0;
+	openList->p.p1 = i;
+	openList->p.p2 = j;
 
 	// We set this boolean value as false as initially
 	// the destination is not reached.
 	bool foundDest = false;
 
-	while (!openList.empty()) {
-		pPair p = *openList.begin();
+	while (!openList) {
+		pPair p = *openList;
 
 		// Remove this vertex from the open list
-		openList.erase(openList.begin());
+		openList++;
 
 		// Add this vertex to the closed list
-		i = p.second.first;
-		j = p.second.second;
+		i = p.p.p1;
+		j = p.p.p2;
 		closedList[i][j] = true;
 
 		/*
@@ -253,8 +263,9 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i - 1][j].f == FLT_MAX
 					|| cellDetails[i - 1][j].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i - 1, j)));
+					openList->d = fNew;
+					openList->p.p1 = i - 1;
+					openList->p.p2 = j;
 
 					// Update the details of this cell
 					cellDetails[i - 1][j].f = fNew;
@@ -301,8 +312,10 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i + 1][j].f == FLT_MAX
 					|| cellDetails[i + 1][j].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i + 1, j)));
+					openList->d = fNew;
+					openList->p.p1 = i + 1;
+					openList->p.p2 = j;
+
 					// Update the details of this cell
 					cellDetails[i + 1][j].f = fNew;
 					cellDetails[i + 1][j].g = gNew;
@@ -349,8 +362,10 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i][j + 1].f == FLT_MAX
 					|| cellDetails[i][j + 1].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i, j + 1)));
+					openList->d = fNew;
+					openList->p.p1 = i;
+					openList->p.p2 = j + 1;
+
 
 					// Update the details of this cell
 					cellDetails[i][j + 1].f = fNew;
@@ -398,8 +413,10 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i][j - 1].f == FLT_MAX
 					|| cellDetails[i][j - 1].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i, j - 1)));
+					openList->d = fNew;
+					openList->p.p1 = i;
+					openList->p.p2 = j - 1;
+
 
 					// Update the details of this cell
 					cellDetails[i][j - 1].f = fNew;
@@ -448,8 +465,9 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i - 1][j + 1].f == FLT_MAX
 					|| cellDetails[i - 1][j + 1].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i - 1, j + 1)));
+					openList->d = fNew;
+					openList->p.p1 = i - 1;
+					openList->p.p2 = j + 1;
 
 					// Update the details of this cell
 					cellDetails[i - 1][j + 1].f = fNew;
@@ -498,8 +516,10 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i - 1][j - 1].f == FLT_MAX
 					|| cellDetails[i - 1][j - 1].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i - 1, j - 1)));
+					openList->d = fNew;
+					openList->p.p1 = i - 1;
+					openList->p.p2 = j - 1;
+
 					// Update the details of this cell
 					cellDetails[i - 1][j - 1].f = fNew;
 					cellDetails[i - 1][j - 1].g = gNew;
@@ -547,8 +567,10 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i + 1][j + 1].f == FLT_MAX
 					|| cellDetails[i + 1][j + 1].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i + 1, j + 1)));
+					openList->d = fNew;
+					openList->p.p1 = i + 1;
+					openList->p.p2 = j + 1;
+
 
 					// Update the details of this cell
 					cellDetails[i + 1][j + 1].f = fNew;
@@ -597,8 +619,10 @@ void aStarSearch(int grid[][COL], Pair src, Pair dest)
 				// better, using 'f' cost as the measure.
 				if (cellDetails[i + 1][j - 1].f == FLT_MAX
 					|| cellDetails[i + 1][j - 1].f > fNew) {
-					openList.insert(make_pair(
-						fNew, make_pair(i + 1, j - 1)));
+					openList->d = fNew;
+					openList->p.p1 = i + 1;
+					openList->p.p2 = j - 1;
+
 
 					// Update the details of this cell
 					cellDetails[i + 1][j - 1].f = fNew;
@@ -640,10 +664,14 @@ int main()
 			{ 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 } };
 
 	// Source is the left-most bottom-most corner
-	Pair src = make_pair(8, 0);
+	Pair src;
+	src.p1 = 8;
+	src.p2 = 0;
 
 	// Destination is the left-most top-most corner
-	Pair dest = make_pair(0, 0);
+	Pair dest;
+	dest.p1 = 0;
+	dest.p2 = 0;
 
 	aStarSearch(grid, src, dest);
 
