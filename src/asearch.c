@@ -1,4 +1,9 @@
-
+#include <stdlib.h>
+#include <math.h>
+#include <float.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 
 
@@ -22,7 +27,7 @@ struct cost{  // coordenadas + custo de movimento
 typedef struct cost Cost;
 
 struct cell{
-	int parent_i, parent_y;
+	int parent_i, parent_j;
 	double f, g, h;
 };
 
@@ -51,7 +56,7 @@ int  cellCost(int grid[][COL], int row, int col){
 	else if (grid[row][col] == 'V'){
 		cost += 10;
 	}
-	else(grid[row][col] == 'A'){
+	else{
 		cost += 15;
 	}
 	return cost;
@@ -72,7 +77,7 @@ int gridCalculation(int row, int col, Coords dest){
 	return h_dist;
 }
 
-void fastestPath(cell cellDetails[][COL], Coords dest){
+void fastestPath(Cell cellDetails[][COL], Coords dest){
 	int auxPrint = 0;
 	int auxPath = 0;
 	printf("\nThe Path is ");
@@ -106,7 +111,7 @@ void fastestPath(cell cellDetails[][COL], Coords dest){
 
 }
 
-void aSearch(grid[][COL], Coords start, Coords dest){
+void aSearch(int grid[][COL], Coords start, Coords dest){
 	int auxList = 0;
 	int auxCount = 0;
 
@@ -128,7 +133,7 @@ void aSearch(grid[][COL], Coords start, Coords dest){
 	bool closedList[ROW][COL];
 	memset(closedList, false, sizeof(closedList));
 
-	cell CellDetails[ROW][COL];
+	Cell cellDetails[ROW][COL];
 
 	int i, j;
 
@@ -157,7 +162,7 @@ void aSearch(grid[][COL], Coords start, Coords dest){
 
 	auxList++;
 
-	bool destReach = false;
+	bool foundDest = false;
 
 	while(auxList != 0){
 		Cost aux = openList[auxCount];
@@ -308,10 +313,7 @@ void aSearch(grid[][COL], Coords start, Coords dest){
 	return;
 }
 
-int main(){
-	/* Description of the Grid-
-     1--> The cell is not blocked
-     0--> The cell is blocked    */
+int main(void){
     int grid[ROW][COL]
         = { { 'M', 'M', 'R', '.', 'M', '.', 'A', 'A', 'A', 'A' },
             { 'M', 'V', 'V', 'V', 'M', '.', 'R', 'R', 'A', 'A' },
@@ -322,18 +324,16 @@ int main(){
             { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
             { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
             { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' } };
- 
-    // Source is the left-most bottom-most corner
+
     Coords start;
 	start.x = 8;
 	start.y = 0;
  
-    // Destination is the left-most top-most corner
     Coords dest;
 	dest.x = 0;
 	dest.y = 0;
  
-    aSearch(grid, src, dest);
+    aSearch(grid, start, dest);
  
     return 0;
 }
