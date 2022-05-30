@@ -12,7 +12,7 @@
 
 #define PRINT_GENS
 
-#define MUT_BASE	95
+#define MUT_BASE	60
 
 struct individual {
 	uint8_t genes[STAGES];
@@ -67,7 +67,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < MUT_BASE * generation/generation_num + 1) {
+			if (mut < MUT_BASE) {
 				size_t id1 = random_lim(STAGES);
 				size_t id2 = random_lim(STAGES);
 				uint8_t mask1 = 1 << (random_lim(CHARS));
@@ -89,6 +89,17 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 				population[i].genes[id1] =
 					(population[i].genes[id1] & ~mask2)
 					| tmp2;
+			}
+
+			mut = random_lim(100);
+			if (mut < MUT_BASE) {
+				size_t id1 = random_lim(STAGES);
+				size_t id2 = random_lim(STAGES);
+
+				uint8_t tmp = population[i].genes[id1];
+				population[i].genes[id1] = population[i].genes[id2];
+				population[i].genes[id2] = tmp;
+
 			}
 
 			if (validate_genes(population[i].genes)) {
@@ -129,7 +140,6 @@ static size_t remove_duplicates(Individual *const population, size_t population_
 			continue;
 
 		for (j = i; population[j].fitness == fitness && j < population_size; ++j) {
-			if (memcmp(population[j].genes, population[i-1].genes, sizeof(uint8_t) * STAGES) == 0)
 				should_be_removed[j] = 1;
 		}
 	}
