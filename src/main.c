@@ -14,12 +14,15 @@
 
 static void usage(const char *const prog);
 static void die(const char *const msg);
-static int strtoi(const char *str, int *const num);
+static int parsei(const char *str, int *const num);
+static int parseul(const char *str, unsigned long *const num);
 static size_t diff(const char c);
 
 int main(int argc, char **argv) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
-	static const char waypoints[STAGES+1] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N', 'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+	static const char waypoints[STAGES+1] = {'0', '1', '2', '3', '4', '5', '6',
+		'7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N',
+		'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 	int seed;
 
 	char *seed_env = getenv("SEED");
@@ -33,7 +36,7 @@ int main(int argc, char **argv) {
 		fclose(urandom);
 	} else {
 		int ret;
-		ret = strtoi(seed_env, &seed);
+		ret = parsei(seed_env, &seed);
 		if (ret != EXIT_SUCCESS)
 			die("strtoi");
 	}
@@ -45,9 +48,24 @@ int main(int argc, char **argv) {
 		usage(argv[0]);
 		return EXIT_FAILURE;
 	} else {
+		size_t width, height;
+		if (argc > 4) {
+			int ret;
+			ret = parseul(argv[2], &width);
+			if (ret == EXIT_FAILURE)
+				die("parseul()");
+
+			ret = parseul(argv[3], &height);
+			if (ret == EXIT_FAILURE)
+				die("parseul()");
+		} else {
+			width	= D_WIDTH;
+			height	= D_HEIGHT;
+		}
+
 		switch (argv[1][0]) {
 			case 'a':
-				sdl2_app(argc, argv);
+				sdl2_app(width, height, 0, 0, waypoints, STAGES);
 				break;
 
 			case 'g': {
@@ -60,7 +78,7 @@ int main(int argc, char **argv) {
 			case 'h': {
 				size_t i;
 				double lc, r, as = 0;
-				Map *map = map_create_from_file(300, 82, stdin);
+				Map *map = map_create_from_file(width, height, stdin);
 
 				lc = gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
 				printf("\n\tLOCAL SEARCH TIME: %.020f\n", lc);
@@ -81,7 +99,7 @@ int main(int argc, char **argv) {
 			case 'm': {
 				size_t i;
 				double r, t = 0;
-				Map *map = map_create_from_file(300, 82, stdin);
+				Map *map = map_create_from_file(width, height, stdin);
 				for (i = 0; i < sizeof(waypoints)-1; ++i) {
 					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), waypoints[i], waypoints[i+1], &diff);
 					printf("%lu = %f\n", i, r);
@@ -109,7 +127,7 @@ static void usage(const char *const prog) {
 					prog);
 }
 
-static int strtoi(const char *str, int *const num)
+static int parsei(const char *str, int *const num)
 {
 	char *endptr;
 
@@ -117,6 +135,19 @@ static int strtoi(const char *str, int *const num)
 		return EXIT_FAILURE;
 
 	*num = (int)strtol(str, &endptr, 0);
+	if (*endptr != 0)
+		return EXIT_FAILURE;
+
+	return EXIT_SUCCESS;
+}
+
+static int parseul(const char *str, unsigned long *const num) {
+	char *endptr;
+
+	if (str == NULL || *str == 0 || num == NULL)
+		return EXIT_FAILURE;
+
+	*num = strtoul(str, &endptr, 0);
 	if (*endptr != 0)
 		return EXIT_FAILURE;
 

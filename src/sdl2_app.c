@@ -12,54 +12,41 @@
 #define APP_NAME "INF1771 T1"
 
 #define SCALE		5
-#define M_WIDTH		300
-#define M_HEIGHT	82
 
 struct _sdl2_app {
 	size_t width, height;
+	size_t m_width, m_height;
 	SDL_Window *window;
 	SDL_Renderer *win_renderer;
 	SDL_Texture *win_texture;
+	const char *waypoints;
+	size_t waypoint_num;
 };
 typedef struct _sdl2_app SDL2_App;
 
 static size_t diff(const char c);
 
 static void sdl2_fatal(const char *const prompt);
-static int mainloop(int argc, char **argv, SDL2_App app);
+static int mainloop(SDL2_App app);
 static void scale_pixels(uint32_t *dest, uint32_t *src,
 					const uint64_t dest_width,
 					const uint64_t dest_height,
 					const uint64_t src_width,
 					const uint64_t src_height);
 
-static int mainloop(int argc, char **argv, SDL2_App app) {
-	static const char waypoints[STAGES+1] = {'0', '1', '2', '3', '4', '5', '6',
-		'7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N',
-		'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-
+static int mainloop(SDL2_App app) {
 	Astar *astar = NULL;
 	size_t astar_index = 0;
-	FILE *mf;
 	uint8_t keep_alive = 1;
 	uint8_t solved = 0;
 	uint8_t step = 1;
 
 	uint32_t *pixels = (uint32_t *)calloc(app.width * app.height,
 											sizeof(uint32_t));
-	uint32_t map_pixels[M_WIDTH * M_HEIGHT];
+	uint32_t *map_pixels = (uint32_t *)calloc(app.m_width * app.m_height,
+												sizeof(uint32_t));
 
-	if (argc > 2) {
-		mf = fopen(argv[2], "r");
-		if (mf == NULL) {
-			perror("fopen()");
-			free(pixels);
-			return EXIT_FAILURE;
-		}
-	} else {
-		mf = stdin;
-	}
-	Map *map = map_create_from_file(300, 82, mf);
+	Map *map = map_create_from_file(app.m_width, app.m_height, stdin);
 
 	memset(pixels, 0xFF, app.width * app.height * sizeof(uint32_t));
 
@@ -89,20 +76,24 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 				case SDL_KEYDOWN:
 					switch (e.key.keysym.sym) {
 						case SDLK_RETURN:
-							if (astar == NULL) {
-								step = 1;
-								solved = 0;
-								astar = astar_init(map_get_buff(map), M_WIDTH, M_HEIGHT, waypoints[astar_index], waypoints[astar_index + 1], &diff);
-							} else if (solved) {
+							if (solved) {
 								astar_free(astar);
 								astar = NULL;
-								if (++astar_index == STAGES)
+								if (++astar_index == app.waypoint_num)
 									astar_index = 0;
-								step = 1;
-								solved = 0;
-								astar = astar_init(map_get_buff(map), M_WIDTH, M_HEIGHT, waypoints[astar_index], waypoints[astar_index + 1], &diff);
-							} else {
+							} else if (astar != NULL) {
 								step = 0;
+							}
+
+							if (astar == NULL) {
+								solved = 0;
+								step = 1;
+								astar = astar_init(	map_get_buff(map),
+													app.m_width,
+													app.m_height,
+													app.waypoints[astar_index],
+													app.waypoints[astar_index + 1],
+													&diff);
 							}
 							break;
 
@@ -134,16 +125,22 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 	if (astar != NULL)
 		astar_free(astar);
 	free(pixels);
+	free(map_pixels);
 	map_destroy(map);
 	return EXIT_SUCCESS;
 }
 
-int sdl2_app(int argc, char **argv) {
+int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
+			 const char *waypoints, size_t waypoint_num) {
 	SDL2_App app;
 	int ret;
 
-	app.width = M_WIDTH * SCALE;
-	app.height = M_HEIGHT * SCALE;
+	app.m_width			= m_width	> 0 ? m_width	: D_WIDTH;
+	app.m_height		= m_height	> 0 ? m_height	: D_HEIGHT;
+	app.width			= width		> 0 ? width		: app.m_width	* SCALE;
+	app.height			= height	> 0 ? height	: app.m_height	* SCALE;
+	app.waypoints		= waypoints;
+	app.waypoint_num	= waypoint_num;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		sdl2_fatal("SDL_Init()");
@@ -160,7 +157,7 @@ int sdl2_app(int argc, char **argv) {
 	app.win_texture = SDL_CreateTexture(app.win_renderer, SDL_PIXELFORMAT_ARGB8888,
 								 SDL_TEXTUREACCESS_STATIC, app.width, app.height);
 
-	ret = mainloop(argc, argv, app);
+	ret = mainloop(app);
 
 	SDL_DestroyTexture(app.win_texture);
 	SDL_DestroyRenderer(app.win_renderer);
