@@ -15,7 +15,7 @@
           name = "buscalocal";
           src = ./.;
           buildInputs = [ ];
-          nativeBuildInputs = [ pkg-config SDL2 autoreconfHook ];
+          nativeBuildInputs = [ pkg-config SDL2 SDL2_ttf autoreconfHook ];
         };
     in {
 
@@ -32,6 +32,7 @@
           gdb
           pkg-config
           SDL2
+          SDL2_ttf
           valgrind
         ];
       };

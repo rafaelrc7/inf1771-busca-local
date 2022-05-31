@@ -4,10 +4,14 @@
 #include <string.h>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
+#include "SDL2/SDL_render.h"
 #include "astar.h"
 #include "map.h"
 #include "settings.h"
+
+#include "font/vcr_osd_mono.h"
 
 #define APP_NAME "INF1771 T1"
 
@@ -16,9 +20,10 @@
 struct _sdl2_app {
 	size_t width, height;
 	size_t m_width, m_height;
+	TTF_Font *font;
 	SDL_Window *window;
 	SDL_Renderer *win_renderer;
-	SDL_Texture *win_texture;
+	SDL_Texture *map_texture, *win_texture;
 	const char *waypoints;
 	size_t waypoint_num;
 };
@@ -27,6 +32,7 @@ typedef struct _sdl2_app SDL2_App;
 static size_t diff(const char c);
 
 static void sdl2_fatal(const char *const prompt);
+static void ttf_fatal(const char *const prompt);
 static int mainloop(SDL2_App app);
 static void scale_pixels(uint32_t *dest, uint32_t *src,
 					const uint64_t dest_width,
@@ -35,6 +41,10 @@ static void scale_pixels(uint32_t *dest, uint32_t *src,
 					const uint64_t src_height);
 
 static int mainloop(SDL2_App app) {
+	SDL_Surface *ui_surface;
+	SDL_Texture *ui_texture;
+	double stage_time = -1, total_time = 0;
+	char buff[256];
 	Astar *astar = NULL;
 	size_t astar_index = 0;
 	uint8_t keep_alive = 1;
@@ -48,14 +58,30 @@ static int mainloop(SDL2_App app) {
 
 	Map *map = map_create_from_file(app.m_width, app.m_height, stdin);
 
+	SDL_Rect stage_ui_rect, total_ui_rect;
+
+	TTF_SizeText(app.font, "STAGE 00/00 (12345)", &stage_ui_rect.w, &stage_ui_rect.h);
+	stage_ui_rect.x = 5;
+	stage_ui_rect.y = app.height - stage_ui_rect.h - 5;
+
+	TTF_SizeText(app.font, "TOTAL: 00000", &total_ui_rect.w, &total_ui_rect.h);
+	total_ui_rect.x = 5;
+	total_ui_rect.y = app.height - stage_ui_rect.h - total_ui_rect.h - 5;
+
 	memset(pixels, 0xFF, app.width * app.height * sizeof(uint32_t));
 
 	//astar = astar_init(map_get_buff(map), M_WIDTH, M_HEIGHT, '1', '2', &diff);
 	while (keep_alive) {
 		SDL_Event e;
+		SDL_SetRenderTarget(app.win_renderer, app.win_texture);
 
 		if (astar != NULL && !step && !solved)
 			solved = astar_step(astar);
+
+		if (solved && stage_time < 0) {
+			stage_time = astar_time(astar);
+			total_time += stage_time;
+		}
 
 		if (astar != NULL)
 			astar_to_pixels(astar, map_pixels, &map_cell_colour);
@@ -65,7 +91,7 @@ static int mainloop(SDL2_App app) {
 		scale_pixels(pixels, map_pixels, app.width, app.height, map_get_width(map),
 			   map_get_height(map));
 
-		SDL_UpdateTexture(app.win_texture, NULL, pixels, app.width * sizeof(uint32_t));
+		SDL_UpdateTexture(app.map_texture, NULL, pixels, app.width * sizeof(uint32_t));
 
 		while (SDL_PollEvent(&e)) {
 			switch (e.type) {
@@ -77,15 +103,19 @@ static int mainloop(SDL2_App app) {
 					switch (e.key.keysym.sym) {
 						case SDLK_RETURN:
 							if (solved) {
+								stage_time = -1;
 								astar_free(astar);
 								astar = NULL;
-								if (++astar_index == app.waypoint_num)
+								if (++astar_index == app.waypoint_num) {
 									astar_index = 0;
+									total_time = 0;
+								}
 							} else if (astar != NULL) {
 								step = 0;
 							}
 
 							if (astar == NULL) {
+								stage_time = -1;
 								solved = 0;
 								step = 1;
 								astar = astar_init(	map_get_buff(map),
@@ -105,6 +135,8 @@ static int mainloop(SDL2_App app) {
 
 						case SDLK_ESCAPE:
 							if (astar != NULL) {
+								total_time = 0;
+								stage_time = -1;
 								solved = 0;
 								step = 1;
 								astar_index = 0;
@@ -117,9 +149,45 @@ static int mainloop(SDL2_App app) {
 			}
 		}
 
+		SDL_RenderCopy(app.win_renderer, app.map_texture, NULL, NULL);
+
+		if (stage_time > -1)
+			snprintf(buff, sizeof(buff), "STAGE %02lu/%02lu (%5.0f)", astar_index+1, app.waypoint_num, stage_time);
+		else
+			snprintf(buff, sizeof(buff), "STAGE %02lu/%02lu (  ?  )", astar_index+1, app.waypoint_num);
+
+		ui_surface = TTF_RenderText_Solid(app.font, buff, (SDL_Color){0x0, 0x0, 0x0});
+		if (ui_surface == NULL)
+			ttf_fatal("TTF_RenderText_Solid()");
+
+		ui_texture = SDL_CreateTextureFromSurface(app.win_renderer, ui_surface);
+		if (ui_texture == NULL)
+			sdl2_fatal("SDL_CreateTextureFromSurface()");
+
+		SDL_RenderCopy(app.win_renderer, ui_texture, NULL, &stage_ui_rect);
+
+		SDL_FreeSurface(ui_surface);
+		SDL_DestroyTexture(ui_texture);
+
+		snprintf(buff, sizeof(buff), "TOTAL: %5.0f", total_time);
+
+		ui_surface = TTF_RenderText_Solid(app.font, buff, (SDL_Color){0x0, 0x0, 0x0});
+		if (ui_surface == NULL)
+			ttf_fatal("TTF_RenderText_Solid()");
+
+		ui_texture = SDL_CreateTextureFromSurface(app.win_renderer, ui_surface);
+		if (ui_texture == NULL)
+			sdl2_fatal("SDL_CreateTextureFromSurface()");
+
+		SDL_RenderCopy(app.win_renderer, ui_texture, NULL, &total_ui_rect);
+
+		SDL_SetRenderTarget(app.win_renderer, NULL);
 		SDL_RenderClear(app.win_renderer);
 		SDL_RenderCopy(app.win_renderer, app.win_texture, NULL, NULL);
 		SDL_RenderPresent(app.win_renderer);
+
+		SDL_FreeSurface(ui_surface);
+		SDL_DestroyTexture(ui_texture);
 	}
 
 	if (astar != NULL)
@@ -132,6 +200,7 @@ static int mainloop(SDL2_App app) {
 
 int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
 			 const char *waypoints, size_t waypoint_num) {
+	SDL_RWops *font_mem;
 	SDL2_App app;
 	int ret;
 
@@ -144,6 +213,17 @@ int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		sdl2_fatal("SDL_Init()");
+	if (TTF_Init() < 0)
+		ttf_fatal("TTF_Init()");
+
+	font_mem = SDL_RWFromConstMem(	VCR_OSD_MONO_ttf,
+									VCR_OSD_MONO_ttf_len);
+	if (font_mem == NULL)
+		sdl2_fatal("SDL_RWFromConstMem()");
+
+	app.font = TTF_OpenFontIndexRW(font_mem, 1, 24, 0);
+	if (app.font == NULL)
+		ttf_fatal("TTF_OpenFontIndexRW()");
 
 	app.window = SDL_CreateWindow(APP_NAME, SDL_WINDOWPOS_CENTERED,
 				SDL_WINDOWPOS_CENTERED, app.width, app.height, 0);
@@ -155,14 +235,26 @@ int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
 		sdl2_fatal("SDL_CreateRenderer()");
 
 	app.win_texture = SDL_CreateTexture(app.win_renderer, SDL_PIXELFORMAT_ARGB8888,
-								 SDL_TEXTUREACCESS_STATIC, app.width, app.height);
+								 SDL_TEXTUREACCESS_TARGET, app.width, app.height);
+	if (app.win_texture == NULL)
+		sdl2_fatal("SDL_CreateTexture()");
+
+	SDL_SetTextureBlendMode(app.win_texture, SDL_BLENDMODE_BLEND);
+
+	app.map_texture = SDL_CreateTexture(app.win_renderer, SDL_PIXELFORMAT_ARGB8888,
+								 SDL_TEXTUREACCESS_STREAMING, app.width, app.height);
+	if (app.map_texture == NULL)
+		sdl2_fatal("SDL_CreateTexture()");
 
 	ret = mainloop(app);
 
 	SDL_DestroyTexture(app.win_texture);
+	SDL_DestroyTexture(app.map_texture);
 	SDL_DestroyRenderer(app.win_renderer);
 	SDL_DestroyWindow(app.window);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	TTF_CloseFont(app.font);
+	TTF_Quit();
 	SDL_Quit();
 
 	return ret;
@@ -170,6 +262,11 @@ int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
 
 static void sdl2_fatal(const char *const prompt) {
 	fprintf(stderr, "%s: %s\n", prompt, SDL_GetError());
+	exit(EXIT_FAILURE);
+}
+
+static void ttf_fatal(const char *const prompt) {
+	fprintf(stderr, "%s: %s\n", prompt, TTF_GetError());
 	exit(EXIT_FAILURE);
 }
 
