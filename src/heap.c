@@ -53,7 +53,6 @@ void heap_push(Heap *restrict const heap,
 			   const size_t priority,
 			   void *restrict const data)
 {
-	Node *node;
 	if (heap->size == heap->cap) {
 		heap->cap *= 2;
 		heap->nodes = (Node *)reallocarray(heap->nodes, heap->cap, sizeof(Node));
