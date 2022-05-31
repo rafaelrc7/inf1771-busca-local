@@ -12,8 +12,7 @@
 
 #define PRINT_GENS
 
-#define MUT_BASE	20
-#define MUT_CHANCE ((MUT_BASE) * 1)
+#define MUT_BASE	60
 
 struct individual {
 	uint8_t genes[STAGES];
@@ -68,64 +67,38 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 			}
 
 			mut = random_lim(100);
-			if (mut < MUT_CHANCE) {
-				size_t j;
-				for (j = 0; j < random_lim(STAGES); ++j) {
-					size_t id1 = random_lim(STAGES);
-					size_t id2 = random_lim(STAGES);
-					uint8_t mask1 = 1 << (random_lim(CHARS));
-					uint8_t mask2 = 1 << (random_lim(CHARS));
+			if (mut < MUT_BASE) {
+				size_t id1 = random_lim(STAGES);
+				size_t id2 = random_lim(STAGES);
+				uint8_t mask1 = 1 << (random_lim(CHARS));
+				uint8_t mask2 = 1 << (random_lim(CHARS));
 
-					uint8_t tmp1 = population[i].genes[id2] & mask1;
-					uint8_t tmp2 = population[i].genes[id2] & mask2;
+				uint8_t tmp1 = population[i].genes[id2] & mask1;
+				uint8_t tmp2 = population[i].genes[id2] & mask2;
 
-					population[i].genes[id2] =
-						(population[i].genes[id2] & ~mask1)
-						| (population[i].genes[id1] & mask1);
-					population[i].genes[id2] =
-						(population[i].genes[id2] & ~mask2)
-						| (population[i].genes[id1] & mask2);
+				population[i].genes[id2] =
+					(population[i].genes[id2] & ~mask1)
+					| (population[i].genes[id1] & mask1);
+				population[i].genes[id2] =
+					(population[i].genes[id2] & ~mask2)
+					| (population[i].genes[id1] & mask2);
 
-					population[i].genes[id1] =
-						(population[i].genes[id1] & ~mask1)
-						| tmp1;
-					population[i].genes[id1] =
-						(population[i].genes[id1] & ~mask2)
-						| tmp2;
-				}
+				population[i].genes[id1] =
+					(population[i].genes[id1] & ~mask1)
+					| tmp1;
+				population[i].genes[id1] =
+					(population[i].genes[id1] & ~mask2)
+					| tmp2;
 			}
 
 			mut = random_lim(100);
-			if (mut < MUT_CHANCE) {
-				size_t j;
-				for (j = 0; j < random_lim(STAGES); ++j) {
-					size_t id1 = random_lim(STAGES);
-					size_t id2 = random_lim(STAGES);
-					uint8_t mask = 1 << (random_lim(CHARS));
+			if (mut < MUT_BASE) {
+				size_t id1 = random_lim(STAGES);
+				size_t id2 = random_lim(STAGES);
 
-					uint8_t tmp = population[i].genes[id2] & mask;
-
-					population[i].genes[id2] =
-						(population[i].genes[id2] & ~mask)
-						| (population[i].genes[id1] & mask);
-
-					population[i].genes[id1] =
-						(population[i].genes[id1] & ~mask)
-						| tmp;
-				}
-			}
-
-			mut = random_lim(100);
-			if (mut < MUT_CHANCE) {
-				size_t j;
-				for (j = 0; j < random_lim(STAGES); ++j) {
-					size_t id1 = random_lim(STAGES);
-					size_t id2 = random_lim(STAGES);
-
-					uint8_t tmp = population[i].genes[id1];
-					population[i].genes[id1] = population[i].genes[id2];
-					population[i].genes[id2] = tmp;
-				}
+				uint8_t tmp = population[i].genes[id1];
+				population[i].genes[id1] = population[i].genes[id2];
+				population[i].genes[id2] = tmp;
 
 			}
 
