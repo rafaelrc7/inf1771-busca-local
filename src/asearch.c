@@ -75,7 +75,6 @@ int isDest(int row, int col, Coords dest){
 int gridCalculation(int row, int col, Coords dest){
 
 	double h_dist = ((row - dest.x) * (row - dest.x) + (col - dest.y) * (col - dest.y));
-	h_dist = sqrt(h_dist);
 	return h_dist;
 }
 
@@ -112,6 +111,8 @@ void fastestPath(Cell cellDetails[][COL], Coords dest){
 void aSearch(int grid[][COL], Coords start, Coords dest){
 	int auxList = 0;
 	int auxCount = 0;
+	int auxCounts = 1;
+	Cost aux;
 
 	if (checkCell(start.x, start.y) == false){
 		printf("Start point is invalid\n");
@@ -163,7 +164,13 @@ void aSearch(int grid[][COL], Coords start, Coords dest){
 	bool foundDest = false;
 
 	while(auxList != 0){
-		Cost aux = openList[auxCount];
+		if (auxCount == 0){
+			aux = openList[0];
+		}
+		else{
+			aux = openList[auxCounts];
+			auxCounts++;
+		}
 
 		i = aux.pos.x;
 		j = aux.pos.y;
@@ -187,7 +194,7 @@ void aSearch(int grid[][COL], Coords start, Coords dest){
 	
 	else if (closedList[i - 1][j] == false){
                 gNew = cellDetails[i][j].g + cellCost(grid, i - 1, j);
-                hNew = gridCalculation(i - 1, j, dest);
+                hNew = gridCalculation(i - 1, j, dest) + cellCost(grid, i - 1, j);
                 fNew = gNew + hNew;
 	
 				if ((cellDetails[i - 1][j].f == FLT_MAX) || (cellDetails[i - 1][j].f > fNew)){
@@ -219,7 +226,7 @@ void aSearch(int grid[][COL], Coords start, Coords dest){
             }
 	else if (closedList[i + 1][j] == false){
                 gNew = cellDetails[i][j].g + cellCost(grid, i + 1, j);
-                hNew = gridCalculation(i + 1, j, dest);
+                hNew = gridCalculation(i + 1, j, dest) + cellCost(grid, i + 1, j);
                 fNew = gNew + hNew;
 	
 				if ((cellDetails[i + 1][j].f == FLT_MAX) || (cellDetails[i + 1][j].f > fNew)){
@@ -251,7 +258,7 @@ void aSearch(int grid[][COL], Coords start, Coords dest){
             }
 	else if (closedList[i][j + 1] == false){
                 gNew = cellDetails[i][j].g + cellCost(grid, i, j + 1);
-                hNew = gridCalculation(i, j + 1, dest);
+                hNew = gridCalculation(i, j + 1, dest) + cellCost(grid, i, j + 1);
                 fNew = gNew + hNew;
 	
 				if ((cellDetails[i][j + 1].f == FLT_MAX) || (cellDetails[i][j + 1].f > fNew)){
@@ -283,7 +290,7 @@ void aSearch(int grid[][COL], Coords start, Coords dest){
             }
 	else if (closedList[i][j - 1] == false){
                 gNew = cellDetails[i][j].g + cellCost(grid, i, j - 1);
-                hNew = gridCalculation(i, j - 1, dest);
+                hNew = gridCalculation(i, j - 1, dest) + cellCost(grid, i, j - 1);
                 fNew = gNew + hNew;
 	
 				if ((cellDetails[i][j - 1].f == FLT_MAX) || (cellDetails[i][j - 1].f > fNew)){
@@ -313,23 +320,23 @@ void aSearch(int grid[][COL], Coords start, Coords dest){
 
 int main(void){
     int grid[ROW][COL]
-        = { { 'M', 'M', 'R', '.', 'M', '.', 'A', 'A', 'A', 'A' },
-            { 'M', 'V', 'V', 'V', 'M', '.', 'R', 'R', 'A', 'A' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' },
-            { 'A', 'A', 'A', '.', '.', '.', '.', '.', '.', 'R' } };
+        = { { '.', 'M', 'M', '.', 'M', 'M', 'A', 'A', 'A', 'A' },
+            { '.', '.', 'M', '.', '.', 'M', 'M', 'M', 'A', 'A' },
+            { 'M', '.', '.', '.', 'M', 'M', '.', 'M', '.', 'R' },
+            { 'A', 'A', '.', '.', 'M', 'M', '.', 'M', '.', 'R' },
+            { 'A', 'A', 'A', '.', '.', 'M', '.', 'M', '.', 'R' },
+            { 'A', 'A', 'A', 'M', 'M', 'M', '.', 'M', '.', 'R' },
+            { 'A', 'A', 'A', 'M', '.', 'M', '.', 'M', '.', 'R' },
+            { 'A', 'A', 'A', 'M', '.', 'M', '.', 'M', '.', 'R' },
+            { 'A', 'A', 'A', 'M', '.', '.', '.', 'M', '.', 'R' } };
 
     Coords start;
-	start.x = 8;
+	start.x = 0;
 	start.y = 0;
  
     Coords dest;
-	dest.x = 3;
-	dest.y = 4;
+	dest.x = 0;
+	dest.y = 3;
  
     aSearch(grid, start, dest);
  
