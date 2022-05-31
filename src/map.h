@@ -21,6 +21,7 @@ const char *map_get_buff(const Map *const map);
 
 void map_print(const Map *const map);
 int map_to_pixels(const Map *const map, uint32_t *pixels);
+uint32_t map_cell_colour(const char c);
 
 #endif
 
