@@ -43,9 +43,12 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	} else {
 		switch (argv[1][0]) {
-			case 'g':
-				gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
+			case 'g': {
+				double result;
+				result = gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
+				printf("\n\tTIME: %.020f\n", result);
 				break;
+			}
 
 			case 'a':
 				sdl2_app(argc, argv);
