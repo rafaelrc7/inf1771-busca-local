@@ -12,7 +12,7 @@ static const uint32_t COLOURS[] = {
 	0xFF283012, /* FOREST    */
 	0xFF0014A8, /* WATER     */
 	0xFF2D2008, /* MOUNTAIN  */
-	0xFF483C6A, /* OBJECTIVE */
+	0xFFFFFFFF, /* OBJECTIVE */
 };
 
 enum CELL_STAT {
