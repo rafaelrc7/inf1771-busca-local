@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdint.h>
 
 
 
@@ -69,6 +70,7 @@ int isDest(int row, int col, Coords dest){
 	else{
 		return 0;
 	}
+}
 
 int gridCalculation(int row, int col, Coords dest){
 
@@ -78,7 +80,6 @@ int gridCalculation(int row, int col, Coords dest){
 }
 
 void fastestPath(Cell cellDetails[][COL], Coords dest){
-	int auxPrint = 0;
 	int auxPath = 0;
 	printf("\nThe Path is ");
     int row = dest.x;
@@ -96,13 +97,10 @@ void fastestPath(Cell cellDetails[][COL], Coords dest){
         col = temp_col;
     }
 
-	auxPath++;
     Path[auxPath].x = row;
 	Path[auxPath].y = col;
-
-    while (auxPath != 0) {
-        Coords aux = Path[auxPrint];
-        auxPrint++;
+    while (auxPath != -1) {
+        Coords aux = Path[auxPath];
 		auxPath--;
         printf("-> (%d,%d) ", aux.x, aux.y);
     }
@@ -330,8 +328,8 @@ int main(void){
 	start.y = 0;
  
     Coords dest;
-	dest.x = 0;
-	dest.y = 0;
+	dest.x = 3;
+	dest.y = 4;
  
     aSearch(grid, start, dest);
  
