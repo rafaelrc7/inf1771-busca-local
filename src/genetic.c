@@ -240,7 +240,7 @@ static void print_population(const Individual *const population, const size_t si
 			buff[k] = 0;
 			printf("%s ", buff);
 		}
-		printf("\t%.06f\n", population[i].time);
+		printf("\t%.010f\n", population[i].time);
 	}
 }
 
