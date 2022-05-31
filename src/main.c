@@ -46,6 +46,10 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	} else {
 		switch (argv[1][0]) {
+			case 'a':
+				sdl2_app(argc, argv);
+				break;
+
 			case 'g': {
 				double result;
 				result = gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
@@ -53,9 +57,26 @@ int main(int argc, char **argv) {
 				break;
 			}
 
-			case 'a':
-				sdl2_app(argc, argv);
+			case 'h': {
+				size_t i;
+				double lc, r, as = 0;
+				Map *map = map_create_from_file(300, 82, stdin);
+
+				lc = gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
+				printf("\n\tLOCAL SEARCH TIME: %.020f\n", lc);
+
+				puts("\nA*:");
+				for (i = 0; i < sizeof(waypoints)-1; ++i) {
+					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), waypoints[i], waypoints[i+1], &diff);
+					printf("%lu = %.0f\n", i, r);
+					as += r;
+				}
+				printf("\nTOTAL A* = %.0f\n", as);
+				map_destroy(map);
+
+				printf("\n\t TOTAL TIME = %f\n", (as + lc));
 				break;
+			}
 
 			case 'm': {
 				size_t i;
@@ -82,8 +103,10 @@ int main(int argc, char **argv) {
 }
 
 static void usage(const char *const prog) {
-	fprintf(stderr, "USAGE: %1$s [g,a,m]\n"
-					"       %1$s a <file>\n", prog);
+	fprintf(stderr, "USAGE: %1$s [g,a,m,h]\n"
+					"       %1$s a < <file>\n"
+					"       %1$s h < <file>\n",
+					prog);
 }
 
 static int strtoi(const char *str, int *const num)
