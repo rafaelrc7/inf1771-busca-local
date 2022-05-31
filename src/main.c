@@ -12,21 +12,31 @@
 #define GENERATIONS 2100
 
 static void usage(const char *const prog);
+static void die(const char *const msg);
+static int strtoi(const char *str, int *const num);
 
 int main(int argc, char **argv) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
 	int seed;
 
-	FILE *urandom = fopen("/dev/urandom", "r");
-	if (urandom == NULL) {
-		perror("fopen()");
-		exit(EXIT_FAILURE);
+	char *seed_env = getenv("SEED");
+
+	if (seed_env == NULL) {
+		FILE *urandom = fopen("/dev/urandom", "r");
+		if (urandom == NULL) {
+			die("fopen()");
+		}
+		fread(&seed, 1, sizeof(seed), urandom);
+		fclose(urandom);
+	} else {
+		int ret;
+		ret = strtoi(seed_env, &seed);
+		if (ret != EXIT_SUCCESS)
+			die("strtoi");
 	}
 
-	fread(&seed, 1, sizeof(seed), urandom);
 	srandom(seed);
 
-	fclose(urandom);
 
 	if (argc == 1) {
 		usage(argv[0]);
@@ -61,5 +71,24 @@ int main(int argc, char **argv) {
 static void usage(const char *const prog) {
 	fprintf(stderr, "USAGE: %1$s [g,a,m]\n"
 					"       %1$s a <file>\n", prog);
+}
+
+static int strtoi(const char *str, int *const num)
+{
+	char *endptr;
+
+	if (str == NULL || *str == 0 || num == NULL)
+		return EXIT_FAILURE;
+
+	*num = (int)strtol(str, &endptr, 0);
+	if (*endptr != 0)
+		return EXIT_FAILURE;
+
+	return EXIT_SUCCESS;
+}
+
+static void die(const char *const msg) {
+	perror(msg);
+	exit(EXIT_FAILURE);
 }
 
