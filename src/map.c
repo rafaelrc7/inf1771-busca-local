@@ -166,3 +166,15 @@ int map_to_pixels(const Map *const map, uint32_t *pixels) {
 	return EXIT_SUCCESS;
 }
 
+uint32_t map_cell_colour(const char c) {
+
+		switch (c) {
+			case '.':	return COLOURS[PLAIN];
+			case 'R': 	return COLOURS[ROCK];
+			case 'F': 	return COLOURS[FOREST];
+			case 'A': 	return COLOURS[WATER];
+			case 'M': 	return COLOURS[MOUNTAIN];
+			default:	return COLOURS[OBJECTIVE];
+		}
+}
+
