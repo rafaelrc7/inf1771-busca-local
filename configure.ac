@@ -5,7 +5,6 @@ AC_PREREQ([2.71])
 AC_INIT([T1AI], [1.0], [contact@rafaelrc.com])
 AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror])
-AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CC
