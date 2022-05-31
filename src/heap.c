@@ -86,7 +86,7 @@ int heap_update(Heap *restrict const heap,
 	size_t i;
 	for (i = 0; i < heap->size; ++i) {
 		if (heap->nodes[i].data == data) {
-			if (heap->nodes[i].priority < priority) {
+			if (heap->nodes[i].priority > priority) {
 				heap->nodes[i].priority = priority;
 				heap_correct_up(heap, i);
 				return 1;

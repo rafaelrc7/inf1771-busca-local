@@ -219,10 +219,13 @@ static void peek(const Pos p, const Pos c, const Pos t, Heap *const heap,
 		heap_push(heap, node->f, node);
 		node->inheap = 1;
 	} else if (!node->visited) {
-		if (heap_update(heap, &node, node->f)) {
-			node->prev = &nodes[P(c.x, c.y, width)];
-			node->g = node->d + node->prev->g;
-			node->f = node->h + node->g;
+		Node *prev = &nodes[P(c.x, c.y, width)];
+		size_t g = node->d + prev->g;
+		size_t f = node->h + g;
+		if (heap_update(heap, node, f)) {
+			node->prev = prev;
+			node->g = g;
+			node->f = f;
 		}
 	}
 }
