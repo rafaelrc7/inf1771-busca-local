@@ -152,6 +152,8 @@ static size_t remove_duplicates(Individual *const population, size_t population_
 		}
 	}
 
+	free(should_be_removed);
+
 	return population_size;
 }
 
