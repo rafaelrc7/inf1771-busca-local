@@ -175,9 +175,11 @@ void astar_to_pixels(Astar *astar, uint32_t *pixels, uint32_t (*colourof)(const 
 		for (x = 0; x < w; ++x) {
 			c = P(x, y, w);
 			if (&nodes[c] == astar->current) {
-				pixels[c] = 0xFFFF0000;
+				pixels[c] = 0xFFFF00FF;
 			} else {
-				if (nodes[c].visited) {
+				if (nodes[c].inheap) {
+					pixels[c] = 0xFF00FF00;
+				} else if (nodes[c].visited) {
 					/*uint8_t r = pixels[c] & 0xFF0000 >> (2 * 8);*/
 					/*uint8_t g = pixels[c] & 0xFF00 >> (1 * 8);*/
 					/*uint8_t b = pixels[c] & 0xFF;*/
@@ -189,9 +191,11 @@ void astar_to_pixels(Astar *astar, uint32_t *pixels, uint32_t (*colourof)(const 
 		}
 	}
 
-	for (node = &astar->nodes[P(astar->target.x, astar->target.y, astar->width)]; node != NULL; node = node->prev) {
-		c = P(node->pos.x, node->pos.y, w);
-		pixels[c] = 0xFF000000;
+	if (astar->current != NULL) {
+		for (node = astar->current->prev; node != NULL; node = node->prev) {
+			c = P(node->pos.x, node->pos.y, w);
+			pixels[c] = 0xFFFF0000;
+		}
 	}
 }
 
