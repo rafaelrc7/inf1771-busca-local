@@ -11,7 +11,7 @@
 typedef struct _node Node;
 struct _node {
 	void *data;
-	unsigned int priority;
+	size_t priority;
 };
 
 struct _heap {
@@ -50,7 +50,7 @@ void heap_free(Heap *const heap) {
 }
 
 void heap_push(Heap *restrict const heap,
-			   const unsigned int priority,
+			   const size_t priority,
 			   void *restrict const data)
 {
 	Node *node;
@@ -80,9 +80,9 @@ void *heap_pop(Heap *const heap) {
 	return data;
 }
 
-void heap_update(Heap *restrict const heap,
+int heap_update(Heap *restrict const heap,
 				  const void *restrict const data,
-				  const unsigned int priority)
+				  const size_t priority)
 {
 	size_t i;
 	for (i = 0; i < heap->size; ++i) {
@@ -90,10 +90,12 @@ void heap_update(Heap *restrict const heap,
 			if (heap->nodes[i].priority < priority) {
 				heap->nodes[i].priority = priority;
 				heap_correct_up(heap, i);
+				return 1;
 			}
-			return;
+			return 0;
 		}
 	}
+	return 0;
 }
 
 static void heap_correct_up(Heap *heap, size_t index) {
@@ -144,7 +146,7 @@ void heap_print(const Heap *const heap) {
 	printf("Size: %lu\tCap: %lu\n", heap->size, heap->cap);
 	putchar('[');
 	for (i = 0; i < heap->size; ++i) {
-		printf("  %u", heap->nodes[i].priority);
+		printf("  %lu", heap->nodes[i].priority);
 	}
 	puts("  ]");
 }
