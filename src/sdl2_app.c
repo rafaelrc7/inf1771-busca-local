@@ -98,6 +98,9 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 								astar = NULL;
 								if (++astar_index == STAGES)
 									astar_index = 0;
+								step = 1;
+								solved = 0;
+								astar = astar_init(map_get_buff(map), M_WIDTH, M_HEIGHT, waypoints[astar_index], waypoints[astar_index + 1], &diff);
 							} else {
 								step = 0;
 							}
