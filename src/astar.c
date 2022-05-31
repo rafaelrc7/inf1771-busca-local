@@ -175,17 +175,25 @@ void astar_to_pixels(Astar *astar, uint32_t *pixels, uint32_t (*colourof)(const 
 		for (x = 0; x < w; ++x) {
 			c = P(x, y, w);
 			if (&nodes[c] == astar->current) {
-				pixels[c] = 0xFFFF00FF;
+				pixels[c] = 0xFF000000;
 			} else {
+				pixels[c] = colourof(map[c]);
 				if (nodes[c].inheap) {
-					pixels[c] = 0xFF00FF00;
+					uint8_t r = pixels[c] & 0xFF0000 >> (2 * 8);
+					uint8_t g = pixels[c] & 0xFF00 >> (1 * 8);
+					uint8_t b = pixels[c] & 0xFF;
+					pixels[c] = 0xFF000000
+									| ((uint8_t)(r * 0.2 + 0xFF * 0.8) << 2*8)
+									| ((uint8_t)(g * 0.2 + 0x00 * 0.8) << 1*8)
+									| ((uint8_t)(b * 0.2 + 0x77 * 0.8));
 				} else if (nodes[c].visited) {
-					/*uint8_t r = pixels[c] & 0xFF0000 >> (2 * 8);*/
-					/*uint8_t g = pixels[c] & 0xFF00 >> (1 * 8);*/
-					/*uint8_t b = pixels[c] & 0xFF;*/
-					pixels[c] = 0xFFFFFF00;
-				} else {
-					pixels[c] = colourof(map[c]);
+					uint8_t r = pixels[c] & 0xFF0000 >> (2 * 8);
+					uint8_t g = pixels[c] & 0xFF00 >> (1 * 8);
+					uint8_t b = pixels[c] & 0xFF;
+					pixels[c] = 0xFF000000
+									| ((uint8_t)(r * 0.2 + 0xFF * 0.8) << 2*8)
+									| ((uint8_t)(g * 0.2 + 0xFF * 0.8) << 1*8)
+									| ((uint8_t)(b * 0.2 + 0x00 * 0.8));
 				}
 			}
 		}
