@@ -15,7 +15,18 @@ static void usage(const char *const prog);
 
 int main(int argc, char **argv) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
-	srandom(time(NULL));
+	int seed;
+
+	FILE *urandom = fopen("/dev/urandom", "r");
+	if (urandom == NULL) {
+		perror("fopen()");
+		exit(EXIT_FAILURE);
+	}
+
+	fread(&seed, 1, sizeof(seed), urandom);
+	srandom(seed);
+
+	fclose(urandom);
 
 	if (argc == 1) {
 		usage(argv[0]);
@@ -43,6 +54,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	printf("\n\tSEED: %d\n", seed);
 	return EXIT_SUCCESS;
 }
 
