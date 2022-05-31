@@ -7,9 +7,9 @@
 #include "map.h"
 #include "sdl2_app.h"
 
-#define POP_CAP		500
-#define POP_STEP	100
-#define GENERATIONS 7000
+#define POP_CAP		1000
+#define POP_STEP	300
+#define GENERATIONS 2100
 
 static void usage(const char *const prog);
 
