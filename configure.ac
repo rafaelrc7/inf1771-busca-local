@@ -19,6 +19,7 @@ AC_CHECK_HEADERS([stdint.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
+AC_C_RESTRICT
 AC_TYPE_SIZE_T
 AC_TYPE_UINT8_T
 AC_TYPE_UINT32_T
@@ -26,7 +27,7 @@ AC_TYPE_UINT64_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset srandom random strtol __builtin_ctz])
+AC_CHECK_FUNCS([memset srandom random strtol __builtin_ctz __builtin_clzl])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
