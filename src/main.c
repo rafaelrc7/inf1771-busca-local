@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "astar.h"
 #include "settings.h"
 #include "genetic.h"
 #include "map.h"
@@ -14,9 +15,11 @@
 static void usage(const char *const prog);
 static void die(const char *const msg);
 static int strtoi(const char *str, int *const num);
+static size_t diff(const char c);
 
 int main(int argc, char **argv) {
 	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
+	static const char waypoints[STAGES+1] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N', 'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 	int seed;
 
 	char *seed_env = getenv("SEED");
@@ -55,8 +58,15 @@ int main(int argc, char **argv) {
 				break;
 
 			case 'm': {
+				size_t i;
+				double r, t = 0;
 				Map *map = map_create_from_file(300, 82, stdin);
-				map_print(map);
+				for (i = 0; i < sizeof(waypoints)-1; ++i) {
+					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), waypoints[i], waypoints[i+1], &diff);
+					printf("%lu = %f\n", i, r);
+					t += r;
+				}
+				printf("\nTOTAL A* = %f\n", t);
 				map_destroy(map);
 				break;
 			}
@@ -93,5 +103,28 @@ static int strtoi(const char *str, int *const num)
 static void die(const char *const msg) {
 	perror(msg);
 	exit(EXIT_FAILURE);
+}
+
+static size_t diff(const char c) {
+	switch (c) {
+		case '.':
+			return 1;
+
+		case 'R':
+			return 5;
+
+		case 'F':
+			return 10;
+
+		case 'A':
+			return 15;
+
+		case 'M':
+			return 200;
+
+		default:
+			return 0;
+			break;
+	}
 }
 
