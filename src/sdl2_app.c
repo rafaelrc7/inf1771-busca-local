@@ -5,7 +5,9 @@
 
 #include <SDL2/SDL.h>
 
+#include "astar.h"
 #include "map.h"
+#include "settings.h"
 
 #define APP_NAME "INF1771 T1"
 
@@ -21,6 +23,8 @@ struct _sdl2_app {
 };
 typedef struct _sdl2_app SDL2_App;
 
+static size_t diff(const char c);
+
 static void sdl2_fatal(const char *const prompt);
 static int mainloop(int argc, char **argv, SDL2_App app);
 static void scale_pixels(uint32_t *dest, uint32_t *src,
@@ -30,8 +34,16 @@ static void scale_pixels(uint32_t *dest, uint32_t *src,
 					const uint64_t src_height);
 
 static int mainloop(int argc, char **argv, SDL2_App app) {
+	static const char waypoints[STAGES+1] = {'0', '1', '2', '3', '4', '5', '6',
+		'7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N',
+		'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+
+	Astar *astar = NULL;
+	size_t astar_index = 0;
 	FILE *mf;
 	uint8_t keep_alive = 1;
+	uint8_t solved = 0;
+	uint8_t step = 1;
 
 	uint32_t *pixels = (uint32_t *)calloc(app.width * app.height,
 											sizeof(uint32_t));
@@ -51,10 +63,18 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 
 	memset(pixels, 0xFF, app.width * app.height * sizeof(uint32_t));
 
+	//astar = astar_init(map_get_buff(map), M_WIDTH, M_HEIGHT, '1', '2', &diff);
 	while (keep_alive) {
 		SDL_Event e;
 
-		map_to_pixels(map, map_pixels);
+		if (astar != NULL && !step && !solved)
+			solved = astar_step(astar);
+
+		if (astar != NULL)
+			astar_to_pixels(astar, map_pixels, &map_cell_colour);
+		else
+			map_to_pixels(map, map_pixels);
+
 		scale_pixels(pixels, map_pixels, app.width, app.height, map_get_width(map),
 			   map_get_height(map));
 
@@ -65,6 +85,41 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 				case SDL_QUIT:
 					keep_alive = 0;
 					break;
+
+				case SDL_KEYDOWN:
+					switch (e.key.keysym.sym) {
+						case SDLK_RETURN:
+							if (astar == NULL) {
+								step = 1;
+								solved = 0;
+								astar = astar_init(map_get_buff(map), M_WIDTH, M_HEIGHT, waypoints[astar_index], waypoints[astar_index + 1], &diff);
+							} else if (solved) {
+								astar_free(astar);
+								astar = NULL;
+								if (++astar_index == STAGES)
+									astar_index = 0;
+							} else {
+								step = 0;
+							}
+							break;
+
+						case SDLK_TAB:
+							if (astar != NULL && !solved) {
+								solved = astar_step(astar);
+							}
+							break;
+
+						case SDLK_ESCAPE:
+							if (astar != NULL) {
+								solved = 0;
+								step = 1;
+								astar_index = 0;
+								astar_free(astar);
+								astar = NULL;
+							}
+							break;
+					}
+					break;
 			}
 		}
 
@@ -73,6 +128,8 @@ static int mainloop(int argc, char **argv, SDL2_App app) {
 		SDL_RenderPresent(app.win_renderer);
 	}
 
+	if (astar != NULL)
+		astar_free(astar);
 	free(pixels);
 	map_destroy(map);
 	return EXIT_SUCCESS;
@@ -137,6 +194,29 @@ static void scale_pixels(uint32_t *dest, uint32_t *src,
 			}
 
 		}
+	}
+}
+
+static size_t diff(const char c) {
+	switch (c) {
+		case '.':
+			return 1;
+
+		case 'R':
+			return 5;
+
+		case 'F':
+			return 10;
+
+		case 'A':
+			return 15;
+
+		case 'M':
+			return 200;
+
+		default:
+			return 0;
+			break;
 	}
 }
 
