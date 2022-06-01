@@ -158,7 +158,7 @@ static size_t remove_duplicates(Individual *const population, size_t population_
 }
 
 static int validate_genes(const uint8_t genes[STAGES]) {
-	size_t i, j;
+	size_t i, j, char_total = 0;
 	uint8_t chars[CHARS];
 	memset(chars, 0, sizeof(chars));
 
@@ -169,6 +169,8 @@ static int validate_genes(const uint8_t genes[STAGES]) {
 
 		for (j = 0; j < CHARS; ++j, mask <<= 1) {
 			if (mask & genes[i]) {
+				if (++char_total > (CHARS * 8 - 1))
+					return 0;
 				if (++chars[j] > 8)
 					return 0;
 			}
@@ -214,6 +216,12 @@ static int generate_genes(Individual *population, const size_t size, const doubl
 			for (k = 0; k < CHARS; ++k) {
 				if (char_genes[k] & (1 << j))
 					population[i].genes[j] |= (1 << k);
+			}
+		}
+
+		for (j = 0; j < STAGES; ++j) {
+			if (population[i].genes[j] != (1 << (CHARS-1)) && population[i].genes[j] &  (1 << (CHARS-1))) {
+				population[i].genes[j] ^= (1 << (CHARS-1));
 			}
 		}
 
