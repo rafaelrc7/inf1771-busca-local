@@ -28,7 +28,6 @@ static double time_stages(const uint8_t genes[STAGES], const double agilities[CH
 static size_t roulette(const Individual *const population, const size_t population_size, const double total_fitness);
 static double total_fitness(const Individual *const population, size_t population_size);
 static double fitness(const Individual solution);
-static size_t cut_population(Individual *const population, const size_t population_cap, const size_t population_size);
 static size_t remove_duplicates(Individual *const population, size_t population_size);
 int solution_sort(const void *ptr1, const void *ptr2);
 
@@ -113,7 +112,7 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 		qsort(population, population_size, sizeof(Individual), &solution_sort);
 		population_size = remove_duplicates(population, population_size);
 		if (population_size > pop_cap)
-			population_size = cut_population(population, pop_cap, population_size);
+			population_size = pop_cap;
 	}
 
 	time = population[0].time;
@@ -121,11 +120,6 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 	free(population);
 
 	return time;
-}
-
-/* TODO: Implement random removal here */
-static size_t cut_population(Individual *const population, const size_t population_cap, const size_t population_size) {
-	return population_cap;
 }
 
 static size_t remove_duplicates(Individual *const population, size_t population_size) {

@@ -28,12 +28,15 @@ int main(int argc, char **argv) {
 	char *seed_env = getenv("SEED");
 
 	if (seed_env == NULL) {
+		size_t r;
 		FILE *urandom = fopen("/dev/urandom", "r");
 		if (urandom == NULL) {
 			die("fopen()");
 		}
-		fread(&seed, 1, sizeof(seed), urandom);
+		r = fread(&seed, 1, sizeof(seed), urandom);
 		fclose(urandom);
+		if (r != sizeof(seed))
+			die("fread()");
 	} else {
 		int ret;
 		ret = parsei(seed_env, &seed);

@@ -41,6 +41,7 @@ static void scale_pixels(uint32_t *dest, uint32_t *src,
 					const uint64_t src_height);
 
 static int mainloop(SDL2_App app) {
+	static const SDL_Color sdl_black = {.a = 0xFF, .r = 0x0, .g = 0x0, .b = 0x0};
 	SDL_Surface *ui_surface;
 	SDL_Texture *ui_texture;
 	double stage_time = -1, total_time = 0;
@@ -201,7 +202,7 @@ static int mainloop(SDL2_App app) {
 		else
 			snprintf(buff, sizeof(buff), "STAGE %02lu/%02lu (  ?  )", astar_index+1, app.waypoint_num);
 
-		ui_surface = TTF_RenderText_Solid(app.font, buff, (SDL_Color){0x0, 0x0, 0x0});
+		ui_surface = TTF_RenderText_Solid(app.font, buff, sdl_black);
 		if (ui_surface == NULL)
 			ttf_fatal("TTF_RenderText_Solid()");
 
@@ -216,7 +217,7 @@ static int mainloop(SDL2_App app) {
 
 		snprintf(buff, sizeof(buff), "TOTAL: %5.0f", total_time);
 
-		ui_surface = TTF_RenderText_Solid(app.font, buff, (SDL_Color){0x0, 0x0, 0x0});
+		ui_surface = TTF_RenderText_Solid(app.font, buff, sdl_black);
 		if (ui_surface == NULL)
 			ttf_fatal("TTF_RenderText_Solid()");
 
