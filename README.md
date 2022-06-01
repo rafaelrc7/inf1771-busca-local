@@ -50,13 +50,11 @@ nix build
 - SDL2 TTF
 - POSIX compliant system
 
-#### Instructions
+#### Instructions (Maintainer)
 ```sh
 git clone https://github.com/rafaelrc7/inf1771-busca-local
 cd inf1771-busca-local
-aclocal
-automake --add-missing
-autoconf
+./autogen.sh
 ./configure && make
 ```
 
