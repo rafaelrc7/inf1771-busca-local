@@ -42,6 +42,7 @@ nix build
 ```
 
 ### GNU Autotools
+The binary file will be located at ```build/src/buscalocal```
 
 #### Dependencies
 - GNU Autotools >= 2.71
@@ -50,12 +51,21 @@ nix build
 - SDL2 TTF
 - POSIX compliant system
 
+#### Instructions
+```sh
+git clone https://github.com/rafaelrc7/inf1771-busca-local
+cd inf1771-busca-local
+mkdir build && cd build
+../configure && make
+```
+
 #### Instructions (Maintainer)
 ```sh
 git clone https://github.com/rafaelrc7/inf1771-busca-local
 cd inf1771-busca-local
 ./autogen.sh
-./configure && make
+mkdir build && cd build
+../configure && make
 ```
 
 
