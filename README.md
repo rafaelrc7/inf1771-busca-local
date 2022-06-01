@@ -1,6 +1,28 @@
 # inf1771-busca-local
 T1 de INF1771 2022.1, busca local e A*.
 
+## Running
+
+### Genetic only
+```sh
+./buscalocal g
+```
+
+### A* GUI
+```sh
+./buscalocal a < mapfile
+```
+
+### A* headless
+```sh
+./buscalocal m < mapfile
+```
+
+### Genetic and A*
+```sh
+./buscalocal h < mapfile
+```
+
 ## Building
 
 ### Nix
