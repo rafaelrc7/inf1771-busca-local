@@ -46,6 +46,7 @@ The binary file will be located at ```build/src/buscalocal```
 
 #### Dependencies
 - GCC
+- Make
 - SDL2
 - SDL2 TTF
 - POSIX compliant system

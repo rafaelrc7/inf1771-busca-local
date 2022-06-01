@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -Wextra -std=gnu17 -O2 $(SDL2_CFLAGS) $(SDL2_TTF_CFLAGS)
+AM_CFLAGS = -std=gnu11 -Wall -Wextra $(SDL2_CFLAGS) $(SDL2_TTF_CFLAGS)
 AM_LDFLAGS = $(SDL2_LIBS) $(SDL2_TTF_LIBS)
 
 bin_PROGRAMS = buscalocal

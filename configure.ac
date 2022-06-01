@@ -10,6 +10,11 @@ AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
 AC_PROG_CC
+AX_CHECK_COMPILE_FLAG([-std=gnu11], [], [
+  echo "gnu11 standard is unsupported by compiler"
+  exit -1
+])
+
 AC_PROG_MAKE_SET
 
 # Checks for libraries.
@@ -29,7 +34,9 @@ AC_TYPE_UINT64_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset srandom random strtol strtoul __builtin_ctz __builtin_clzl])
+AC_CHECK_FUNCS([memset srandom random strtol strtoul])
+AX_GCC_BUILTIN(__builtin_ctz)
+AX_GCC_BUILTIN(__builtin_clzl)
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

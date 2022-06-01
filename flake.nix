@@ -15,7 +15,7 @@
           name = "buscalocal";
           src = ./.;
           buildInputs = [ ];
-          nativeBuildInputs = [ pkg-config SDL2 SDL2_ttf autoreconfHook ];
+          nativeBuildInputs = [ autoconf-archive pkg-config SDL2 SDL2_ttf autoreconfHook ];
         };
     in {
 
@@ -24,6 +24,7 @@
       devShell = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [
           autoconf
+          autoconf-archive
           automake
           bash
           binutils

@@ -46,12 +46,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `__builtin_clzl' function. */
-#undef HAVE___BUILTIN_CLZL
-
-/* Define to 1 if you have the `__builtin_ctz' function. */
-#undef HAVE___BUILTIN_CTZ
-
 /* Name of package */
 #undef PACKAGE
 

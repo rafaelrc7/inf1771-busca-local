@@ -4527,6 +4527,49 @@ else
 fi
 
 
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -std=gnu11" >&5
+printf %s "checking whether C compiler accepts -std=gnu11... " >&6; }
+if test ${ax_cv_check_cflags___std_gnu11+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -std=gnu11"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  ax_cv_check_cflags___std_gnu11=yes
+else $as_nop
+  ax_cv_check_cflags___std_gnu11=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___std_gnu11" >&5
+printf "%s\n" "$ax_cv_check_cflags___std_gnu11" >&6; }
+if test "x$ax_cv_check_cflags___std_gnu11" = xyes
+then :
+  :
+else $as_nop
+
+  echo "gnu11 standard is unsupported by compiler"
+  exit -1
+
+fi
+
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether ${MAKE-make} sets \$(MAKE)" >&5
 printf %s "checking whether ${MAKE-make} sets \$(MAKE)... " >&6; }
 set x ${MAKE-make}
@@ -4875,7 +4918,6 @@ printf "%s\n" "yes" >&6; }
 fi
 
 # Checks for header files.
-
 ac_header= ac_cache=
 for ac_item in $ac_header_c_list
 do
@@ -5226,18 +5268,96 @@ then :
   printf "%s\n" "#define HAVE_STRTOUL 1" >>confdefs.h
 
 fi
-ac_fn_c_check_func "$LINENO" "__builtin_ctz" "ac_cv_func___builtin_ctz"
-if test "x$ac_cv_func___builtin_ctz" = xyes
+
+
+
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for __builtin_ctz" >&5
+printf %s "checking for __builtin_ctz... " >&6; }
+if test ${ax_cv_have___builtin_ctz+y}
 then :
-  printf "%s\n" "#define HAVE___BUILTIN_CTZ 1" >>confdefs.h
+  printf %s "(cached) " >&6
+else $as_nop
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+            __builtin_ctz(0)
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ax_cv_have___builtin_ctz=yes
+else $as_nop
+  ax_cv_have___builtin_ctz=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
 
 fi
-ac_fn_c_check_func "$LINENO" "__builtin_clzl" "ac_cv_func___builtin_clzl"
-if test "x$ac_cv_func___builtin_clzl" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have___builtin_ctz" >&5
+printf "%s\n" "$ax_cv_have___builtin_ctz" >&6; }
+
+    if test yes = $ax_cv_have___builtin_ctz
 then :
-  printf "%s\n" "#define HAVE___BUILTIN_CLZL 1" >>confdefs.h
+
+printf "%s\n" "#define HAVE___BUILTIN_CTZ 1" >>confdefs.h
 
 fi
+
+
+
+
+
+
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for __builtin_clzl" >&5
+printf %s "checking for __builtin_clzl... " >&6; }
+if test ${ax_cv_have___builtin_clzl+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+            __builtin_clzl(0)
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ax_cv_have___builtin_clzl=yes
+else $as_nop
+  ax_cv_have___builtin_clzl=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have___builtin_clzl" >&5
+printf "%s\n" "$ax_cv_have___builtin_clzl" >&6; }
+
+    if test yes = $ax_cv_have___builtin_clzl
+then :
+
+printf "%s\n" "#define HAVE___BUILTIN_CLZL 1" >>confdefs.h
+
+fi
+
+
 
 
 ac_config_files="$ac_config_files Makefile src/Makefile"
