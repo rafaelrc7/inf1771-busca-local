@@ -50,6 +50,7 @@ static int mainloop(SDL2_App app) {
 	uint8_t keep_alive = 1;
 	uint8_t solved = 0;
 	uint8_t step = 1;
+	uint8_t runtoend = 0;
 
 	uint32_t *pixels = (uint32_t *)calloc(app.width * app.height,
 											sizeof(uint32_t));
@@ -81,6 +82,26 @@ static int mainloop(SDL2_App app) {
 		if (solved && stage_time < 0) {
 			stage_time = astar_time(astar);
 			total_time += stage_time;
+
+			if (runtoend) {
+				if (astar_index < app.waypoint_num-1) {
+					stage_time = -1;
+					astar_free(astar);
+					astar = NULL;
+					++astar_index;
+					stage_time = -1;
+					solved = 0;
+					step = 0;
+					astar = astar_init(	map_get_buff(map),
+										app.m_width,
+										app.m_height,
+										app.waypoints[astar_index],
+										app.waypoints[astar_index + 1],
+										&diff);
+				} else {
+					runtoend = 0;
+				}
+			}
 		}
 
 		if (astar != NULL)
@@ -131,6 +152,11 @@ static int mainloop(SDL2_App app) {
 							if (astar != NULL && !solved) {
 								solved = astar_step(astar);
 							}
+							break;
+
+						case SDLK_r:
+							runtoend = !runtoend;
+							step = !runtoend;
 							break;
 
 						case SDLK_ESCAPE:
