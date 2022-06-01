@@ -30,7 +30,7 @@ struct _astar_state {
 	Heap *heap;
 };
 
-static inline size_t manhattan(Pos a, Pos b);
+static inline size_t manhattan(const Pos a, const Pos b);
 static void peek(const Pos p, const Pos c, const Pos t, Heap *const heap,
 				 Node *const nodes, const char *map, const size_t width,
 				 size_t (*diff)(const char));
@@ -250,7 +250,7 @@ static void peek(const Pos p, const Pos c, const Pos t, Heap *const heap,
 	}
 }
 
-static inline size_t manhattan(Pos a, Pos b) {
+static inline size_t manhattan(const Pos a, const Pos b) {
 	size_t dist = 0;
 
 	if (a.x > b.x) {
