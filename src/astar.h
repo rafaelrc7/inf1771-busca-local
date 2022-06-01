@@ -14,6 +14,7 @@ void astar_free(Astar *astar);
 double astar_step(Astar *astar);
 double astar_time(Astar *astar);
 void astar_to_pixels(Astar *astar, uint32_t *pixels, uint32_t (*colourof)(const char));
+void astar_markpath(Astar *astar, uint32_t *path);
 
 #endif
 

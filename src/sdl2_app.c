@@ -51,10 +51,13 @@ static int mainloop(SDL2_App app) {
 	uint8_t solved = 0;
 	uint8_t step = 1;
 	uint8_t runtoend = 0;
+	uint8_t showpath = 0;
 
 	uint32_t *pixels = (uint32_t *)calloc(app.width * app.height,
 											sizeof(uint32_t));
 	uint32_t *map_pixels = (uint32_t *)calloc(app.m_width * app.m_height,
+												sizeof(uint32_t));
+	uint32_t *path_pixels = (uint32_t *)calloc(app.m_width * app.m_height,
 												sizeof(uint32_t));
 
 	Map *map = map_create_from_file(app.m_width, app.m_height, stdin);
@@ -82,6 +85,7 @@ static int mainloop(SDL2_App app) {
 		if (solved && stage_time < 0) {
 			stage_time = astar_time(astar);
 			total_time += stage_time;
+			astar_markpath(astar, path_pixels);
 
 			if (runtoend) {
 				if (astar_index < app.waypoint_num-1) {
@@ -108,6 +112,17 @@ static int mainloop(SDL2_App app) {
 			astar_to_pixels(astar, map_pixels, &map_cell_colour);
 		else
 			map_to_pixels(map, map_pixels);
+
+		if (showpath) {
+			size_t x, y;
+			for (y = 0; y < app.m_height; ++y) {
+				for (x = 0; x < app.m_width; ++x) {
+					if (path_pixels[y * app.m_width + x]) {
+						map_pixels[y * app.m_width + x] = 0xFFB37400;
+					}
+				}
+			}
+		}
 
 		scale_pixels(pixels, map_pixels, app.width, app.height, map_get_width(map),
 			   map_get_height(map));
@@ -157,6 +172,10 @@ static int mainloop(SDL2_App app) {
 						case SDLK_r:
 							runtoend = !runtoend;
 							step = !runtoend;
+							break;
+
+						case SDLK_p:
+							showpath = !showpath;
 							break;
 
 						case SDLK_ESCAPE:
@@ -219,6 +238,7 @@ static int mainloop(SDL2_App app) {
 	if (astar != NULL)
 		astar_free(astar);
 	free(pixels);
+	free(path_pixels);
 	free(map_pixels);
 	map_destroy(map);
 	return EXIT_SUCCESS;

@@ -104,6 +104,14 @@ double astar_time(Astar *astar) {
 	return astar->current->g;
 }
 
+void astar_markpath(Astar *astar, uint32_t *path) {
+	Node *node = astar->current;
+
+	for(; node != NULL; node = node->prev) {
+		path[P(node->pos.x, node->pos.y, astar->width)] = 1;
+	}
+}
+
 double astar_step(Astar *astar)
 {
 	Node *node;
