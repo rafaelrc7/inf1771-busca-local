@@ -67,7 +67,7 @@ git clone https://github.com/rafaelrc7/inf1771-busca-local
 cd inf1771-busca-local
 ./autogen.sh
 mkdir build && cd build
-../configure && make
+../configure --enable-maintainer-mode && make
 ```
 
 
