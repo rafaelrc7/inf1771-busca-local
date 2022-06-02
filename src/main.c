@@ -27,6 +27,9 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
+	settings_print(s);
+	putchar('\n');
+
 	if (!s->use_seed) {
 		if (seed_env == NULL) {
 			size_t r;
