@@ -279,7 +279,7 @@ static void print_population(const Individual *const population, const size_t si
 static double time_stage(const uint8_t gene, const uint8_t stage, const Settings *const s) {
 	size_t i;
 	uint8_t mask;
-	double diff = (stage+1) * 10;
+	double diff = s->difficulties[stage];
 	double ag_sum = 0;
 
 	for (i = 0, mask = 1; i < s->char_num; ++i, mask <<= 1) {

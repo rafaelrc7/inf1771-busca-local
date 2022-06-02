@@ -7,7 +7,7 @@
 typedef struct _settings Settings;
 struct _settings {
 	char *waypoints, *app_name;
-	double *agilities;
+	double *agilities, *difficulties;
 	size_t map_width, map_height;
 	size_t waypoint_num;
 	size_t app_name_len;

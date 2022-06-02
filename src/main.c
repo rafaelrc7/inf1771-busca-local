@@ -22,6 +22,10 @@ int main(int argc, char **argv) {
 	char *seed_env = getenv("SEED");
 
 	s = settings_from_lua(LUA_CONFIG_FILE);
+	if (!s) {
+		fprintf(stderr, "FATAL: Settings failure\n");
+		return EXIT_FAILURE;
+	}
 
 	if (!s->use_seed) {
 		if (seed_env == NULL) {

@@ -25,8 +25,12 @@
 #define FREE_AGILITIES		0x1
 #define FREE_WAYPOINTS		0x2
 #define FREE_APPNAME		0x4
+#define FREE_DIFFS			0x8
 
 static double agilities[DEFAULT_CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
+static double difficulties[DEFAULT_STAGES] = {10, 20, 30, 40, 50, 60, 70, 80,
+	90, 100, 110, 120, 130, 140, 150, 160, 170 , 180, 190, 200, 210, 220, 230,
+	240, 250, 260, 270, 280, 290, 300, 310};
 static char waypoints[DEFAULT_STAGES+1] = {'0', '1', '2', '3', '4', '5', '6',
 	'7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N', 'O',
 	'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
@@ -55,6 +59,7 @@ Settings *settings_new(void) {
 		s->waypoint_num = DEFAULT_STAGES+1;
 		s->win_width.val = DEFAULT_WIDTH;
 		s->win_height.val = DEFAULT_HEIGHT;
+		s->difficulties = difficulties;
 	}
 
 	return s;
@@ -240,11 +245,48 @@ Settings *settings_from_lua(const char *filename) {
 			lua_rawgeti(L, -1, i);
 
 			if (!lua_isnumber(L, -1)) {
-				print_error("waypoints element is not number");
+				print_error("agilities element is not number");
 				goto fail2;
 			}
 
 			s->agilities[i-1] = lua_tonumber(L, -1);
+
+			lua_pop(L, 1);
+		}
+
+	}
+	lua_pop(L, 1);
+
+	if (lua_getfield(L, -1, "difficulties") != LUA_TNIL) {
+		size_t i;
+
+		if (!lua_istable(L, -1)) {
+			print_error("'difficulties' field is not table");
+			goto fail2;
+		}
+
+		lua_len(L, -1);
+		if (lua_tonumber(L, -1) != s->stage_num) {
+			print_error("number of difficulties differs from number of stages");
+			goto fail2;
+		}
+		lua_pop(L, 1);
+
+		if ((s->difficulties = (double *)calloc(s->stage_num, sizeof(double))) == NULL) {
+			s->free |= FREE_DIFFS;
+			print_error("memory allocation error");
+			goto fail2;
+		}
+
+		for (i = 1; i <= s->stage_num; ++i) {
+			lua_rawgeti(L, -1, i);
+
+			if (!lua_isnumber(L, -1)) {
+				print_error("difficulties element is not number");
+				goto fail2;
+			}
+
+			s->difficulties[i-1] = lua_tonumber(L, -1);
 
 			lua_pop(L, 1);
 		}
@@ -275,6 +317,9 @@ void settings_free(Settings *s) {
 
 	if (s->free & FREE_WAYPOINTS)
 		free(s->waypoints);
+
+	if (s->free & FREE_DIFFS)
+		free(s->difficulties);
 
 	free(s);
 }
@@ -314,6 +359,12 @@ void settings_print(const Settings *const s) {
 	printf("WAYPOINTS: {");
 	for (i = 0; i < s->waypoint_num; ++i) {
 		printf(" '%c'", s->waypoints[i]);
+	}
+	puts(" }");
+
+	printf("DIFFCULTIES: {");
+	for (i = 0; i < s->stage_num; ++i) {
+		printf(" %.2f", s->difficulties[i]);
 	}
 	puts(" }");
 
