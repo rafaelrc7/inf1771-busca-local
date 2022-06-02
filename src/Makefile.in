@@ -103,7 +103,8 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_buscalocal_OBJECTS = main.$(OBJEXT) array.$(OBJEXT) \
 	genetic.$(OBJEXT) sdl2_app.$(OBJEXT) random_utils.$(OBJEXT) \
-	map.$(OBJEXT) heap.$(OBJEXT) astar.$(OBJEXT)
+	map.$(OBJEXT) heap.$(OBJEXT) astar.$(OBJEXT) \
+	settings.$(OBJEXT)
 buscalocal_OBJECTS = $(am_buscalocal_OBJECTS)
 buscalocal_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -124,7 +125,7 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/array.Po ./$(DEPDIR)/astar.Po \
 	./$(DEPDIR)/genetic.Po ./$(DEPDIR)/heap.Po ./$(DEPDIR)/main.Po \
 	./$(DEPDIR)/map.Po ./$(DEPDIR)/random_utils.Po \
-	./$(DEPDIR)/sdl2_app.Po
+	./$(DEPDIR)/sdl2_app.Po ./$(DEPDIR)/settings.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -272,7 +273,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -std=gnu11 -Wall -Wextra $(SDL2_CFLAGS) $(SDL2_TTF_CFLAGS) $(LUA_CFLAGS)
 AM_LDFLAGS = $(SDL2_LIBS) $(SDL2_TTF_LIBS) $(LUA_LIBS)
-buscalocal_SOURCES = main.c array.c genetic.c sdl2_app.c random_utils.c map.c heap.c astar.c
+buscalocal_SOURCES = main.c array.c genetic.c sdl2_app.c random_utils.c map.c heap.c astar.c settings.c
 all: all-am
 
 .SUFFIXES:
@@ -367,6 +368,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/map.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/random_utils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl2_app.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/settings.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -522,6 +524,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/map.Po
 	-rm -f ./$(DEPDIR)/random_utils.Po
 	-rm -f ./$(DEPDIR)/sdl2_app.Po
+	-rm -f ./$(DEPDIR)/settings.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -575,6 +578,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/map.Po
 	-rm -f ./$(DEPDIR)/random_utils.Po
 	-rm -f ./$(DEPDIR)/sdl2_app.Po
+	-rm -f ./$(DEPDIR)/settings.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

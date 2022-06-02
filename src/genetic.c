@@ -6,60 +6,72 @@
 
 #include "genetic.h"
 
-#include "settings.h"
 #include "array.h"
 #include "random_utils.h"
+#include "settings.h"
 
 #define PRINT_GENS
 
 #define MUT_BASE	60
 
 struct individual {
-	uint8_t genes[STAGES];
+	uint8_t *genes;
 	double time;
 	double fitness;
 };
 typedef struct individual Individual;
 
-static int validate_genes(const uint8_t genes[STAGES]);
-static int generate_genes(Individual *population, const size_t size, const double agilities[CHARS]);
-static void print_population(const Individual *const population, const size_t size, const size_t cap);
-static double time_stages(const uint8_t genes[STAGES], const double agilities[CHARS]);
-static size_t roulette(const Individual *const population, const size_t population_size, const double total_fitness);
-static double total_fitness(const Individual *const population, size_t population_size);
+static int validate_genes(const uint8_t *const genes,
+						  const Settings *const s);
+static int generate_genes(Individual *population,
+						  const size_t size,
+						  const Settings *const s);
+static void print_population(const Individual *const population,
+							 const size_t size,
+							 const size_t cap,
+							 const Settings *const s);
+static double time_stages(const uint8_t *const genes,
+						  const Settings *const s);
+static size_t roulette(const Individual *const population,
+					   const size_t population_size,
+					   const double total_fitness);
+static double total_fitness(const Individual *const population,
+							size_t population_size);
 static double fitness(const Individual solution);
-static size_t remove_duplicates(Individual *const population, size_t population_size);
+static size_t remove_duplicates(Individual *const population,
+								size_t population_size);
 int solution_sort(const void *ptr1, const void *ptr2);
 
-double gen_solve(const double agilities[CHARS], const size_t generation_num,
-				 const size_t pop_step, const size_t pop_cap)
+double gen_solve(const Settings *const s)
 {
 	Individual *population;
-	size_t generation, population_size;
+	size_t generation, population_size, c;
 	double time;
 
-	population = (Individual *)calloc(pop_cap + pop_step, sizeof(Individual));
+	population = (Individual *)calloc(s->population_cap + s->population_step, sizeof(Individual));
+	for (c = 0; c < s->population_cap + s->population_step; ++c)
+		population[c].genes = (uint8_t *)calloc(s->stage_num, sizeof(uint8_t));
 
-	generate_genes(population, pop_step, agilities);
-	population_size = pop_step;
+	generate_genes(population, s->population_step, s);
+	population_size = s->population_step;
 
 	qsort(population, population_size, sizeof(Individual), &solution_sort);
 
-	for (generation = 0; generation < generation_num; ++generation) {
+	for (generation = 0; generation < s->generation_num; ++generation) {
 		size_t i, j;
 		double total_fitness_val = total_fitness(population, population_size);
 
 		#ifdef PRINT_GENS
-		printf("\n----- GENERATION %lu (%lu/%lu) -----\n", generation, population_size, pop_cap);
-		print_population(population, population_size, 10);
+		printf("\n----- GENERATION %lu (%lu/%lu) -----\n", generation, population_size, s->population_cap);
+		print_population(population, population_size, 10, s);
 		#endif
 
-		for (i = population_size; i < population_size + pop_step;) {
+		for (i = population_size; i < population_size + s->population_step;) {
 			size_t parent1 = roulette(population, population_size, total_fitness_val);
 			size_t parent2 = roulette(population, population_size, total_fitness_val);
 			uint8_t mut;
 
-			for (j = 0; j < STAGES; ++j) {
+			for (j = 0; j < s->stage_num; ++j) {
 				uint8_t select = random_prob(2);
 				population[i].genes[j] = select ?
 					population[parent1].genes[j] : population[parent2].genes[j];
@@ -67,10 +79,10 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 
 			mut = random_lim(100);
 			if (mut < MUT_BASE) {
-				size_t id1 = random_lim(STAGES);
-				size_t id2 = random_lim(STAGES);
-				uint8_t mask1 = 1 << (random_lim(CHARS));
-				uint8_t mask2 = 1 << (random_lim(CHARS));
+				size_t id1 = random_lim(s->stage_num);
+				size_t id2 = random_lim(s->stage_num);
+				uint8_t mask1 = 1 << (random_lim(s->char_num));
+				uint8_t mask2 = 1 << (random_lim(s->char_num));
 
 				uint8_t tmp1 = population[i].genes[id2] & mask1;
 				uint8_t tmp2 = population[i].genes[id2] & mask2;
@@ -92,8 +104,8 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 
 			mut = random_lim(100);
 			if (mut < MUT_BASE) {
-				size_t id1 = random_lim(STAGES);
-				size_t id2 = random_lim(STAGES);
+				size_t id1 = random_lim(s->stage_num);
+				size_t id2 = random_lim(s->stage_num);
 
 				uint8_t tmp = population[i].genes[id1];
 				population[i].genes[id1] = population[i].genes[id2];
@@ -101,21 +113,25 @@ double gen_solve(const double agilities[CHARS], const size_t generation_num,
 
 			}
 
-			if (validate_genes(population[i].genes)) {
-				population[i].time = time_stages(population[i].genes, agilities);
+			if (validate_genes(population[i].genes, s)) {
+				population[i].time = time_stages(population[i].genes, s);
 				population[i].fitness = fitness(population[i]);
 				++i;
 			}
 		}
 
-		population_size += pop_step;
+		population_size += s->population_step;
 		qsort(population, population_size, sizeof(Individual), &solution_sort);
 		population_size = remove_duplicates(population, population_size);
-		if (population_size > pop_cap)
-			population_size = pop_cap;
+		if (population_size > s->population_cap) {
+			population_size = s->population_cap;
+		}
 	}
 
 	time = population[0].time;
+
+	for (c = 0; c < s->population_cap + s->population_step; ++c)
+		free(population[c].genes);
 
 	free(population);
 
@@ -140,8 +156,11 @@ static size_t remove_duplicates(Individual *const population, size_t population_
 
 	for (i = population_size-1; i > 0; --i) {
 		if (should_be_removed[i]) {
-			if (i != population_size-1)
+			if (i != population_size-1) {
+				uint8_t *tmp = population[i].genes;
 				memcpy(&population[i], &population[i+1], sizeof(Individual) * (population_size - i - 1));
+				population[population_size - 1].genes = tmp;
+			}
 			--population_size;
 		}
 	}
@@ -151,27 +170,32 @@ static size_t remove_duplicates(Individual *const population, size_t population_
 	return population_size;
 }
 
-static int validate_genes(const uint8_t genes[STAGES]) {
+static int validate_genes(const uint8_t *const genes, const Settings *const s) {
 	size_t i, j, char_total = 0;
-	uint8_t chars[CHARS];
-	memset(chars, 0, sizeof(chars));
+	uint8_t *chars = (uint8_t *)calloc(s->char_num, sizeof(uint8_t));
+	memset(chars, 0, s->char_num * sizeof(uint8_t));
 
-	for (i = 0; i < STAGES; ++i) {
+	for (i = 0; i < s->stage_num; ++i) {
 		uint8_t mask = 1;
 		if (!genes[i])
-			return 0;
+			goto false;
 
-		for (j = 0; j < CHARS; ++j, mask <<= 1) {
+		for (j = 0; j < s->char_num; ++j, mask <<= 1) {
 			if (mask & genes[i]) {
-				if (++char_total > (CHARS * 8 - 1))
-					return 0;
+				if (++char_total > (s->char_num * 8 - 1))
+					goto false;
 				if (++chars[j] > 8)
-					return 0;
+					goto false;
 			}
 		}
 	}
 
+	free(chars);
 	return 1;
+
+	false:
+	free(chars);
+	return 0;
 }
 
 
@@ -181,64 +205,68 @@ static inline uint64_t next(const uint64_t v) {
 	#undef t
 }
 
-static size_t generate_possible_genes(struct array **possible_genes) {
+static size_t generate_possible_genes(struct array **possible_genes, const Settings *s) {
 	uint64_t gene;
 
 	*possible_genes = array_new(sizeof(uint64_t));
 
-	for (gene = 0b11111111; !(gene & (1 << (STAGES))); gene = next(gene))
+	for (gene = (1 << s->char_lives) - 1; !(gene & (1 << (s->stage_num))); gene = next(gene))
 		array_push(*possible_genes, &gene);
 
 	return array_get_size(*possible_genes);
 }
 
-static int generate_genes(Individual *population, const size_t size, const double agilities[CHARS]) {
+static int generate_genes(Individual *population, const size_t size, const Settings *const s) {
 	struct array *possible_genes;
 	size_t i, j, k, possible_genes_num;
 
-	possible_genes_num = generate_possible_genes(&possible_genes);
+	uint64_t *char_genes = (uint64_t *)calloc(s->char_num, sizeof(uint64_t));
+	if (char_genes == NULL)
+		exit(EXIT_FAILURE);
+
+	possible_genes_num = generate_possible_genes(&possible_genes, s);
 
 	for (i = 0; i < size;) {
-		uint64_t char_genes[CHARS];
-		for (j = 0; j < CHARS; ++j) {
+		for (j = 0; j < s->char_num; ++j) {
 			memcpy(&char_genes[j], array_get(possible_genes, random_lim(possible_genes_num)), sizeof(uint64_t));
 		}
 
-		memset(population[i].genes, 0, sizeof(uint8_t) * STAGES);
+		memset(population[i].genes, 0, sizeof(uint8_t) * s->stage_num);
 
-		for (j = 0; j < STAGES; ++j) {
-			for (k = 0; k < CHARS; ++k) {
+		for (j = 0; j < s->stage_num; ++j) {
+			for (k = 0; k < s->char_num; ++k) {
 				if (char_genes[k] & (1 << j))
 					population[i].genes[j] |= (1 << k);
 			}
 		}
 
-		for (j = 0; j < STAGES; ++j) {
-			if (population[i].genes[j] != (1 << (CHARS-1)) && population[i].genes[j] &  (1 << (CHARS-1))) {
-				population[i].genes[j] ^= (1 << (CHARS-1));
+		for (j = 0; j < s->stage_num; ++j) {
+			if (population[i].genes[j] != (1 << (s->char_num-1)) && population[i].genes[j] &  (1 << (s->char_num-1))) {
+				population[i].genes[j] ^= (1 << (s->char_num-1));
 			}
 		}
 
-		if (validate_genes(population[i].genes)) {
-			population[i].time = time_stages(population[i].genes, agilities);
+		if (validate_genes(population[i].genes, s)) {
+			population[i].time = time_stages(population[i].genes, s);
 			population[i].fitness = fitness(population[i]);
 			++i;
 		}
 	}
 
 	array_free(possible_genes);
+	free(char_genes);
 
 	return 1;
 }
 
-static void print_population(const Individual *const population, const size_t size, const size_t cap) {
+static void print_population(const Individual *const population, const size_t size, const size_t cap, const Settings *const s) {
 	size_t i, j, k;
-	char buff[CHARS + 1];
+	char buff[s->char_num + 1];
 
 	for (i = 0; i < cap && i < size; ++i) {
-		for (j = 0; j < STAGES; ++j) {
-			uint8_t mask = 1 << (CHARS - 1);
-			for (k = 0; k < CHARS; ++k, mask >>= 1) {
+		for (j = 0; j < s->stage_num; ++j) {
+			uint8_t mask = 1 << (s->char_num - 1);
+			for (k = 0; k < s->char_num; ++k, mask >>= 1) {
 				buff[k] = population[i].genes[j] & mask ? '1' : '0';
 			}
 			buff[k] = 0;
@@ -248,26 +276,26 @@ static void print_population(const Individual *const population, const size_t si
 	}
 }
 
-static double time_stage(const uint8_t gene, const double agilities[CHARS], const uint8_t stage) {
+static double time_stage(const uint8_t gene, const uint8_t stage, const Settings *const s) {
 	size_t i;
 	uint8_t mask;
 	double diff = (stage+1) * 10;
 	double ag_sum = 0;
 
-	for (i = 0, mask = 1; i < CHARS; ++i, mask <<= 1) {
+	for (i = 0, mask = 1; i < s->char_num; ++i, mask <<= 1) {
 		if (gene & mask)
-			ag_sum += agilities[i];
+			ag_sum += s->agilities[i];
 	}
 
 	return diff / ag_sum;
 }
 
-static double time_stages(const uint8_t genes[STAGES], const double agilities[CHARS]) {
+static double time_stages(const uint8_t *const genes, const Settings *const s) {
 	size_t i;
 	double time = 0;
 
-	for (i = 0; i < STAGES; ++i) {
-		time += time_stage(genes[i], agilities, i);
+	for (i = 0; i < s->stage_num; ++i) {
+		time += time_stage(genes[i], i, s);
 	}
 
 	return time;

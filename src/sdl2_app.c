@@ -13,10 +13,6 @@
 
 #include "font/vcr_osd_mono.h"
 
-#define APP_NAME "INF1771 T1"
-
-#define SCALE		5
-
 struct _sdl2_app {
 	size_t width, height;
 	size_t m_width, m_height;
@@ -245,18 +241,17 @@ static int mainloop(SDL2_App app) {
 	return EXIT_SUCCESS;
 }
 
-int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
-			 const char *waypoints, size_t waypoint_num) {
+int sdl2_app(const Settings *const s) {
 	SDL_RWops *font_mem;
 	SDL2_App app;
 	int ret;
 
-	app.m_width			= m_width	> 0 ? m_width	: D_WIDTH;
-	app.m_height		= m_height	> 0 ? m_height	: D_HEIGHT;
-	app.width			= width		> 0 ? width		: app.m_width	* SCALE;
-	app.height			= height	> 0 ? height	: app.m_height	* SCALE;
-	app.waypoints		= waypoints;
-	app.waypoint_num	= waypoint_num;
+	app.m_width			= s->map_width;
+	app.m_height		= s->map_height;
+	app.width			= s->size_is_scale ? app.m_width	* s->win_width.scale	: s->win_width.val;
+	app.height			= s->size_is_scale ? app.m_height	* s->win_height.scale	: s->win_height.val;
+	app.waypoints		= s->waypoints;
+	app.waypoint_num	= s->waypoint_num -1;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		sdl2_fatal("SDL_Init()");
@@ -272,7 +267,7 @@ int sdl2_app(size_t m_width, size_t m_height, size_t width, size_t height,
 	if (app.font == NULL)
 		ttf_fatal("TTF_OpenFontIndexRW()");
 
-	app.window = SDL_CreateWindow(APP_NAME, SDL_WINDOWPOS_CENTERED,
+	app.window = SDL_CreateWindow(s->app_name, SDL_WINDOWPOS_CENTERED,
 				SDL_WINDOWPOS_CENTERED, app.width, app.height, 0);
 	if (app.window == NULL)
 		sdl2_fatal("SDL_CreateWindow()");

@@ -8,9 +8,7 @@
 #include "map.h"
 #include "sdl2_app.h"
 
-#define POP_CAP		1000
-#define POP_STEP	300
-#define GENERATIONS 2100
+#define LUA_CONFIG_FILE "config.lua"
 
 static void usage(const char *const prog);
 static void die(const char *const msg);
@@ -19,61 +17,45 @@ static int parseul(const char *str, unsigned long *const num);
 static size_t diff(const char c);
 
 int main(int argc, char **argv) {
-	static const double agilities[CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
-	static const char waypoints[STAGES+1] = {'0', '1', '2', '3', '4', '5', '6',
-		'7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N',
-		'O', 'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
-	int seed;
+	Settings *s;
 
 	char *seed_env = getenv("SEED");
 
-	if (seed_env == NULL) {
-		size_t r;
-		FILE *urandom = fopen("/dev/urandom", "r");
-		if (urandom == NULL) {
-			die("fopen()");
+	s = settings_from_lua(LUA_CONFIG_FILE);
+
+	if (!s->use_seed) {
+		if (seed_env == NULL) {
+			size_t r;
+			FILE *urandom = fopen("/dev/urandom", "r");
+			if (urandom == NULL) {
+				die("fopen()");
+			}
+			r = fread(&s->seed, 1, sizeof(s->seed), urandom);
+			fclose(urandom);
+			if (r != sizeof(s->seed))
+				die("fread()");
+		} else {
+			int ret;
+			ret = parsei(seed_env, &s->seed);
+			if (ret != EXIT_SUCCESS)
+				die("strtoi");
 		}
-		r = fread(&seed, 1, sizeof(seed), urandom);
-		fclose(urandom);
-		if (r != sizeof(seed))
-			die("fread()");
-	} else {
-		int ret;
-		ret = parsei(seed_env, &seed);
-		if (ret != EXIT_SUCCESS)
-			die("strtoi");
 	}
 
-	srandom(seed);
-
+	srandom(s->seed);
 
 	if (argc == 1) {
 		usage(argv[0]);
 		return EXIT_FAILURE;
 	} else {
-		size_t width, height;
-		if (argc > 4) {
-			int ret;
-			ret = parseul(argv[2], &width);
-			if (ret == EXIT_FAILURE)
-				die("parseul()");
-
-			ret = parseul(argv[3], &height);
-			if (ret == EXIT_FAILURE)
-				die("parseul()");
-		} else {
-			width	= D_WIDTH;
-			height	= D_HEIGHT;
-		}
-
 		switch (argv[1][0]) {
 			case 'a':
-				sdl2_app(width, height, 0, 0, waypoints, STAGES);
+				sdl2_app(s);
 				break;
 
 			case 'g': {
 				double result;
-				result = gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
+				result = gen_solve(s);
 				printf("\n\tTIME: %.020f\n", result);
 				break;
 			}
@@ -81,14 +63,14 @@ int main(int argc, char **argv) {
 			case 'h': {
 				size_t i;
 				double lc, r, as = 0;
-				Map *map = map_create_from_file(width, height, stdin);
+				Map *map = map_create_from_file(s->map_width, s->map_height, stdin);
 
-				lc = gen_solve(agilities, GENERATIONS, POP_STEP, POP_CAP);
+				lc = gen_solve(s);
 				printf("\n\tLOCAL SEARCH TIME: %.020f\n", lc);
 
 				puts("\nA*:");
-				for (i = 0; i < sizeof(waypoints)-1; ++i) {
-					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), waypoints[i], waypoints[i+1], &diff);
+				for (i = 0; i < s->waypoint_num-1; ++i) {
+					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), s->waypoints[i], s->waypoints[i+1], &diff);
 					printf("%lu = %.0f\n", i, r);
 					as += r;
 				}
@@ -102,9 +84,9 @@ int main(int argc, char **argv) {
 			case 'm': {
 				size_t i;
 				double r, t = 0;
-				Map *map = map_create_from_file(width, height, stdin);
-				for (i = 0; i < sizeof(waypoints)-1; ++i) {
-					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), waypoints[i], waypoints[i+1], &diff);
+				Map *map = map_create_from_file(s->map_width, s->map_height, stdin);
+				for (i = 0; i < s->waypoint_num-1; ++i) {
+					r = solve(map_get_buff(map), map_get_width(map), map_get_height(map), s->waypoints[i], s->waypoints[i+1], &diff);
 					printf("%lu = %f\n", i, r);
 					t += r;
 				}
@@ -119,7 +101,9 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	printf("\n\tSEED: %d\n", seed);
+	printf("\n\tSEED: %d\n", s->seed);
+
+	settings_free(s);
 	return EXIT_SUCCESS;
 }
 

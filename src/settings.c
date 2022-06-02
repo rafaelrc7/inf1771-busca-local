@@ -11,11 +11,25 @@
 
 #define DEFAULT_STAGES		31
 #define DEFAULT_CHARS		7
+#define DEFAULT_CHAR_LIVES	8
 #define DEFAULT_MWIDTH		300
 #define DEFAULT_MHEIGHT		82
 #define DEFAULT_POP_CAP		1000
 #define DEFAULT_POP_STEP	300
 #define DEFAULT_GENERATIONS 2100
+#define DEFAULT_APP_NAME	"INF1771 T1"
+
+#define DEFAULT_WIDTH		((DEFAULT_MWIDTH)*5)
+#define DEFAULT_HEIGHT		((DEFAULT_MHEIGHT)*5)
+
+#define FREE_AGILITIES		0x1
+#define FREE_WAYPOINTS		0x2
+#define FREE_APPNAME		0x4
+
+static double agilities[DEFAULT_CHARS] = {1.8, 1.6, 1.6, 1.6, 1.4, 0.9, 0.7};
+static char waypoints[DEFAULT_STAGES+1] = {'0', '1', '2', '3', '4', '5', '6',
+	'7', '8', '9', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'K', 'L', 'N', 'O',
+	'P', 'Q', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
 static int lua_get_size_t(lua_State *L, size_t *const dest, const char *const field_name);
 static void lua_print_err(lua_State *L);
@@ -26,13 +40,21 @@ Settings *settings_new(void) {
 
 	s =  (Settings *)calloc(1, sizeof(Settings));
 	if (s != NULL) {
+		s->app_name = DEFAULT_APP_NAME;
+		s->app_name_len = 10;
 		s->char_num = DEFAULT_CHARS;
+		s->char_lives = DEFAULT_CHAR_LIVES;
 		s->generation_num = DEFAULT_GENERATIONS;
 		s->population_cap = DEFAULT_POP_CAP;
 		s->population_step = DEFAULT_POP_STEP;
 		s->stage_num = DEFAULT_STAGES;
 		s->map_width = DEFAULT_MWIDTH;
 		s->map_height = DEFAULT_MHEIGHT;
+		s->agilities = agilities;
+		s->waypoints = waypoints;
+		s->waypoint_num = DEFAULT_STAGES+1;
+		s->win_width.val = DEFAULT_WIDTH;
+		s->win_height.val = DEFAULT_HEIGHT;
 	}
 
 	return s;
@@ -49,8 +71,8 @@ Settings *settings_from_lua(const char *filename) {
 		goto fail1;
 
 	if (luaL_dofile(L, filename)) {
-		lua_print_err(L);
-		goto fail2;
+		lua_close(L);
+		return s;
 	}
 
 	if (!lua_istable(L, -1)) {
@@ -100,6 +122,14 @@ Settings *settings_from_lua(const char *filename) {
 	if (lua_get_size_t(L, &s->char_num, "char_num"))
 		goto fail2;
 
+	if (s->char_num > 8) {
+		print_error("unsupported number of characters");
+		goto fail2;
+	}
+
+	if (lua_get_size_t(L, &s->char_lives, "char_lives"))
+		goto fail2;
+
 	if (lua_get_size_t(L, &s->generation_num, "generation_num"))
 		goto fail2;
 
@@ -132,6 +162,7 @@ Settings *settings_from_lua(const char *filename) {
 		s->app_name_len = lua_tonumber(L, -1);
 
 		if ((s->app_name = (char *)calloc(s->app_name_len, sizeof(char))) == NULL) {
+			s->free |= FREE_APPNAME;
 			print_error("memory allocation error");
 			goto fail2;
 		}
@@ -155,6 +186,7 @@ Settings *settings_from_lua(const char *filename) {
 		lua_pop(L, 1);
 
 		if ((s->waypoints = (char *)calloc(s->waypoint_num, sizeof(char))) == NULL) {
+			s->free |= FREE_WAYPOINTS;
 			print_error("memory allocation error");
 			goto fail2;
 		}
@@ -199,6 +231,7 @@ Settings *settings_from_lua(const char *filename) {
 		lua_pop(L, 1);
 
 		if ((s->agilities = (double *)calloc(s->char_num, sizeof(double))) == NULL) {
+			s->free |= FREE_AGILITIES;
 			print_error("memory allocation error");
 			goto fail2;
 		}
@@ -234,13 +267,13 @@ fail0:
 }
 
 void settings_free(Settings *s) {
-	if (s->agilities)
+	if (s->free & FREE_AGILITIES)
 		free(s->agilities);
 
-	if (s->app_name)
+	if (s->free & FREE_APPNAME)
 		free(s->app_name);
 
-	if (s->waypoints)
+	if (s->free & FREE_WAYPOINTS)
 		free(s->waypoints);
 
 	free(s);
