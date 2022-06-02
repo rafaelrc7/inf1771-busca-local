@@ -15,7 +15,7 @@
           name = "buscalocal";
           src = ./.;
           buildInputs = [ ];
-          nativeBuildInputs = [ autoconf-archive pkg-config SDL2 SDL2_ttf autoreconfHook ];
+          nativeBuildInputs = [ autoconf-archive pkg-config lua5_3 SDL2 SDL2_ttf autoreconfHook ];
         };
     in {
 
@@ -31,6 +31,7 @@
           gcc
           gnumake
           gdb
+          lua5_3
           pkg-config
           SDL2
           SDL2_ttf

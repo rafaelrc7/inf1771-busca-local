@@ -18,6 +18,7 @@ AX_CHECK_COMPILE_FLAG([-std=gnu11], [], [
 AC_PROG_MAKE_SET
 
 # Checks for libraries.
+PKG_CHECK_MODULES([LUA], [lua])
 PKG_CHECK_MODULES([SDL2], [sdl2])
 PKG_CHECK_MODULES([SDL2_TTF], [SDL2_ttf])
 
