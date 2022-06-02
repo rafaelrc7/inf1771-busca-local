@@ -83,6 +83,7 @@ static int mainloop(SDL2_App app) {
 			stage_time = astar_time(astar);
 			total_time += stage_time;
 			astar_markpath(astar, path_pixels);
+			printf("STAGE %lu:\t%.2f\n", astar_index, stage_time);
 
 			if (runtoend) {
 				if (astar_index < app.waypoint_num-1) {
@@ -140,6 +141,7 @@ static int mainloop(SDL2_App app) {
 								astar_free(astar);
 								astar = NULL;
 								if (++astar_index == app.waypoint_num) {
+									printf("TOTAL:\t%.2f\n", total_time);
 									astar_index = 0;
 									total_time = 0;
 								}
