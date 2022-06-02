@@ -12,8 +12,6 @@
 
 #define PRINT_GENS
 
-#define MUT_BASE	60
-
 struct individual {
 	uint8_t *genes;
 	double time;
@@ -78,7 +76,7 @@ double gen_solve(const Settings *const s)
 			}
 
 			mut = random_lim(100);
-			if (mut < MUT_BASE) {
+			if (mut < s->mut_base) {
 				size_t id1 = random_lim(s->stage_num);
 				size_t id2 = random_lim(s->stage_num);
 				uint8_t mask1 = 1 << (random_lim(s->char_num));
@@ -103,7 +101,7 @@ double gen_solve(const Settings *const s)
 			}
 
 			mut = random_lim(100);
-			if (mut < MUT_BASE) {
+			if (mut < s->mut_base) {
 				size_t id1 = random_lim(s->stage_num);
 				size_t id2 = random_lim(s->stage_num);
 

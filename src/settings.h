@@ -22,6 +22,7 @@ struct _settings {
 		double scale;
 	} win_height;
 	int seed;
+	double mut_base;
 	uint8_t size_is_scale, use_seed;
 	uint8_t free;
 };

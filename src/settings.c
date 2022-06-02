@@ -18,6 +18,7 @@
 #define DEFAULT_POP_STEP	300
 #define DEFAULT_GENERATIONS 2100
 #define DEFAULT_APP_NAME	"INF1771 T1"
+#define DEFAULT_MUT_BASE	60
 
 #define DEFAULT_WIDTH		((DEFAULT_MWIDTH)*5)
 #define DEFAULT_HEIGHT		((DEFAULT_MHEIGHT)*5)
@@ -60,6 +61,7 @@ Settings *settings_new(void) {
 		s->win_width.val = DEFAULT_WIDTH;
 		s->win_height.val = DEFAULT_HEIGHT;
 		s->difficulties = difficulties;
+		s->mut_base = DEFAULT_MUT_BASE;
 	}
 
 	return s;
@@ -152,6 +154,15 @@ Settings *settings_from_lua(const char *filename) {
 
 	if (lua_get_size_t(L, &s->map_height, "map_height"))
 		goto fail2;
+
+	if (lua_getfield(L, -1, "mut_base") != LUA_TNIL) {
+		if (!lua_isnumber(L, -1)) {
+			print_error("'mut_base' field is not number");
+			goto fail2;
+		}
+		s->mut_base = (double)lua_tonumber(L, -1);
+	}
+	lua_pop(L, 1);
 
 	if (lua_getfield(L, -1, "app_name") != LUA_TNIL) {
 		const char *tmp;
@@ -378,7 +389,7 @@ static int lua_get_size_t(lua_State *L, size_t *const dest, const char *const fi
 			lua_pop(L, 1);
 			return 1;
 		}
-		*dest = lua_tonumber(L, -1);
+		*dest = (size_t)lua_tonumber(L, -1);
 	}
 	lua_pop(L, 1);
 	return 0;
